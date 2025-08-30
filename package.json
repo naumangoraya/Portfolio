@@ -1,0 +1,58 @@
+{
+  "name": "v4",
+  "description": "Personal Website V4 - Dynamic Portfolio with Admin Panel",
+  "version": "1.0.0",
+  "author": "Nauman Noor <nauman.noor@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naumannoor/v4"
+  },
+  "keywords": [
+    "nextjs",
+    "portfolio",
+    "admin-panel",
+    "mongodb"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "db:seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "animejs": "^3.2.1",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.7.0",
+    "dotenv": "^16.3.1",
+    "gray-matter": "^4.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.0.3",
+    "multer": "^2.0.2",
+    "next": "^14.0.0",
+    "next-auth": "^4.24.5",
+    "prismjs": "^1.29.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet": "^6.1.0",
+    "react-hook-form": "^7.48.2",
+    "react-hot-toast": "^2.4.1",
+    "react-transition-group": "^4.4.5",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
+    "scrollreveal": "^4.0.9",
+    "sharp": "^0.33.0",
+    "styled-components": "^6.1.8",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.4",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.0.0"
+  }
+}
