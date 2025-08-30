@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { usePathname } from 'next/navigation';
 import { Head, Loader, Nav, Social, Email, Footer } from '@components';
+import { useAuth } from '../contexts/AuthContext';
 
 const StyledContent = styled.div`
   display: flex;
@@ -12,10 +13,13 @@ const StyledContent = styled.div`
   min-height: 100vh;
 `;
 
+
+
 const Layout = ({ children }) => {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const [isLoading, setIsLoading] = useState(isHome);
+  const { isAdmin } = useAuth();
 
   // Sets target="_blank" rel="noopener noreferrer" on external links
   const handleExternalLinks = () => {
@@ -35,8 +39,15 @@ const Layout = ({ children }) => {
       return;
     }
 
-    // Handle hash navigation
-    if (typeof window !== 'undefined' && window.location.hash) {
+    // Clear hash on initial page load to start at the top
+    if (typeof window !== 'undefined' && window.location.hash && !sessionStorage.getItem('initialLoad')) {
+      // Remove the hash from URL without triggering scroll
+      const url = window.location.pathname;
+      window.history.replaceState(null, null, url);
+    }
+
+    // Handle hash navigation - only scroll if it's not the initial page load
+    if (typeof window !== 'undefined' && window.location.hash && !sessionStorage.getItem('initialLoad')) {
       const id = window.location.hash.substring(1);
       setTimeout(() => {
         const el = document.getElementById(id);
@@ -46,6 +57,9 @@ const Layout = ({ children }) => {
         }
       }, 0);
     }
+
+    // Mark that initial load is complete
+    sessionStorage.setItem('initialLoad', 'true');
 
     handleExternalLinks();
   }, [isLoading]);
@@ -58,6 +72,8 @@ const Layout = ({ children }) => {
         <a className="skip-to-content" href="#content">
           Skip to Content
         </a>
+
+
 
         {isLoading && isHome ? (
           <Loader finishLoading={() => setIsLoading(false)} />

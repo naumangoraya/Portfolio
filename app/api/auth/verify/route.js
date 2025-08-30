@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'your-secret-key'; // Change this to a secure secret
-
 export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -15,25 +13,28 @@ export async function GET(request) {
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: 'No token provided' },
+        { status: 401 }
+      );
+    }
 
     try {
-      // Verify the token
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Check if token is expired
-      if (decoded.exp < Date.now() / 1000) {
+      if (!decoded.isAdmin) {
         return NextResponse.json(
-          { success: false, message: 'Token expired' },
+          { success: false, message: 'Not authorized as admin' },
           { status: 401 }
         );
       }
 
-      return NextResponse.json({
-        success: true,
-        user: {
-          username: decoded.username,
-          role: decoded.role
-        }
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Token is valid',
+        admin: decoded
       });
     } catch (jwtError) {
       return NextResponse.json(
@@ -44,7 +45,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Token verification error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: 'Error verifying token' },
       { status: 500 }
     );
   }

@@ -3,8 +3,6 @@ import dbConnect from '../../../lib/mongodb';
 import About from '../../../lib/models/About';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'your-secret-key'; // Change this to a secure secret
-
 // Middleware to verify admin token
 const verifyAdmin = (request) => {
   const authHeader = request.headers.get('authorization');
@@ -16,13 +14,13 @@ const verifyAdmin = (request) => {
   const token = authHeader.substring(7);
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     if (decoded.exp < Date.now() / 1000) {
       return { success: false, message: 'Token expired' };
     }
 
-    if (decoded.role !== 'admin') {
+    if (!decoded.isAdmin) {
       return { success: false, message: 'Insufficient permissions' };
     }
 
@@ -32,6 +30,7 @@ const verifyAdmin = (request) => {
   }
 };
 
+// GET - Fetch about data
 export async function GET() {
   try {
     await dbConnect();
@@ -39,22 +38,60 @@ export async function GET() {
     const about = await About.findOne({ isActive: true }).sort({ order: 1 });
     
     if (!about) {
-      return NextResponse.json(null);
+      return NextResponse.json({ about: null });
     }
     
-    return NextResponse.json(about);
+    return NextResponse.json({ about });
   } catch (error) {
     console.error('Error fetching about:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }
 }
 
+// POST - Create new about record
+export async function POST(request) {
+  try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+    
+    const aboutData = await request.json();
+    
+    // Create new about record
+    const about = new About({
+      ...aboutData,
+      isActive: true,
+      order: aboutData.order || 1
+    });
+    
+    await about.save();
+    
+    return NextResponse.json({ 
+      success: true, 
+      about,
+      message: 'About section created successfully' 
+    });
+  } catch (error) {
+    console.error('Error creating about:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT - Update about data
 export async function PUT(request) {
   try {
-    // Verify admin token
     const authResult = verifyAdmin(request);
     if (!authResult.success) {
       return NextResponse.json(
@@ -75,21 +112,15 @@ export async function PUT(request) {
       about = new About({
         ...updateData,
         isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        order: updateData.order || 1
       });
     } else {
       // Update existing about record
-      about = await About.findByIdAndUpdate(
-        about._id,
-        { 
-          ...updateData,
-          updatedAt: new Date()
-        },
-        { new: true, runValidators: true }
-      );
+      Object.assign(about, updateData);
+      about.updatedAt = new Date();
     }
+    
+    await about.save();
     
     return NextResponse.json({ 
       success: true, 
@@ -99,7 +130,52 @@ export async function PUT(request) {
   } catch (error) {
     console.error('Error updating about:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Delete about record
+export async function DELETE(request) {
+  try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'About ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    const about = await About.findByIdAndDelete(id);
+    
+    if (!about) {
+      return NextResponse.json(
+        { error: 'About record not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ 
+      success: true,
+      message: 'About section deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting about:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

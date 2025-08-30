@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from 'styled-components';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import AdminControls from '../src/components/AdminControls';
 // Dynamically import GlobalStyle and theme to avoid server-side issues
@@ -29,6 +30,16 @@ export default function ClientLayout({ children }) {
       <GlobalStyle />
       <AuthProvider>
         <AdminControls />
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: 'var(--navy)',
+              color: 'var(--lightest-slate)',
+              border: '1px solid var(--green)',
+            },
+          }}
+        />
         {children}
       </AuthProvider>
     </ThemeProvider>

@@ -18,7 +18,10 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "db:seed": "node scripts/seed.js"
+    "setup": "node scripts/setup.js",
+    "db:seed": "node scripts/seed.js",
+    "db:seed:all": "node scripts/seedAll.js",
+    "fix:archive-slugs": "node scripts/fixArchiveSlugs.js"
   },
   "dependencies": {
     "animejs": "^3.2.1",

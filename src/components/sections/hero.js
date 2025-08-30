@@ -5,6 +5,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import styled from 'styled-components';
 import { navDelay, loaderDelay } from '@utils';
 import { usePrefersReducedMotion } from '@hooks';
+import { formatTextWithBackticks } from '../../utils/textFormatting';
 
 const StyledHeroSection = styled.section`
   ${({ theme }) => theme.mixins.flexCenter};
@@ -48,7 +49,7 @@ const StyledHeroSection = styled.section`
   }
 `;
 
-const Hero = () => {
+const Hero = ({ data }) => {
   const [isMounted, setIsMounted] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -61,25 +62,29 @@ const Hero = () => {
     return () => clearTimeout(timeout);
   }, []);
 
-  const one = <h1>Hi, my name is</h1>;
-  const two = <h2 className="big-heading">Nauman Noor.</h2>;
-  const three = <h3 className="big-heading">I build things for the web.</h3>;
+  // Use dynamic data or fallback to defaults
+  const title = data?.title || "Hi, my name is";
+  const name = data?.subtitle || "Nauman Noor.";
+  const tagline = data?.description || "I build things for the web.";
+  const description = data?.longDescription || "I'm a full stack developer specializing in building and exploring AI, ML, deep learning, data science, generative AI, and RAGs automation. Currently, I'm focused on building accessible, human-centered products and innovative AI solutions.";
+  const ctaText = data?.ctaText || "Get In Touch";
+  const ctaLink = data?.ctaLink || "mailto:nauman.noor@gmail.com";
+
+  const one = <h1>{title}</h1>;
+  const two = <h2 className="big-heading">{name}</h2>;
+  const three = <h3 className="big-heading">{formatTextWithBackticks(tagline)}</h3>;
   const four = (
     <>
-      <p>
-        I&apos;m a full stack developer specializing in building and exploring AI, ML, deep learning, 
-        data science, generative AI, and RAGs automation. Currently, I&apos;m focused on building 
-        accessible, human-centered products and innovative AI solutions.
-      </p>
+      <p>{formatTextWithBackticks(description)}</p>
     </>
   );
   const five = (
     <a
       className="email-link"
-      href="mailto:nauman.noor@gmail.com"
-      target="_blank"
-      rel="noreferrer">
-      Get In Touch
+      href={ctaLink}
+      target={ctaLink.startsWith('mailto:') ? undefined : "_blank"}
+      rel={ctaLink.startsWith('mailto:') ? undefined : "noreferrer"}>
+      {ctaText}
     </a>
   );
 

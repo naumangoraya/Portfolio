@@ -3,8 +3,6 @@ import dbConnect from '../../../lib/mongodb';
 import Job from '../../../lib/models/Job';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'your-secret-key'; // Change this to a secure secret
-
 // Middleware to verify admin token
 const verifyAdmin = (request) => {
   const authHeader = request.headers.get('authorization');
@@ -16,13 +14,13 @@ const verifyAdmin = (request) => {
   const token = authHeader.substring(7);
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     if (decoded.exp < Date.now() / 1000) {
       return { success: false, message: 'Token expired' };
     }
 
-    if (decoded.role !== 'admin') {
+    if (!decoded.isAdmin) {
       return { success: false, message: 'Insufficient permissions' };
     }
 
@@ -32,25 +30,27 @@ const verifyAdmin = (request) => {
   }
 };
 
+// GET - Fetch all jobs
 export async function GET() {
   try {
     await dbConnect();
     
-    const jobs = await Job.find({ isActive: true }).sort({ order: 1 });
+    const jobs = await Job.find({ isActive: true })
+      .sort({ order: 1, startDate: -1 });
     
-    return NextResponse.json(jobs);
+    return NextResponse.json({ jobs });
   } catch (error) {
     console.error('Error fetching jobs:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }
 }
 
+// POST - Create new job
 export async function POST(request) {
   try {
-    // Verify admin token
     const authResult = verifyAdmin(request);
     if (!authResult.success) {
       return NextResponse.json(
@@ -64,39 +64,32 @@ export async function POST(request) {
     const jobData = await request.json();
     
     // Create new job
-    const newJob = new Job({
+    const job = new Job({
       ...jobData,
       isActive: true,
-      order: 999, // Will be updated later
-      createdAt: new Date(),
-      updatedAt: new Date()
+      order: jobData.order || 1,
+      current: jobData.current || false
     });
     
-    await newJob.save();
-    
-    // Update order for all jobs
-    const allJobs = await Job.find({ isActive: true }).sort({ order: 1 });
-    for (let i = 0; i < allJobs.length; i++) {
-      await Job.findByIdAndUpdate(allJobs[i]._id, { order: i + 1 });
-    }
+    await job.save();
     
     return NextResponse.json({ 
       success: true, 
-      job: newJob,
+      job,
       message: 'Job created successfully' 
     });
   } catch (error) {
     console.error('Error creating job:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }
 }
 
+// PUT - Update job
 export async function PUT(request) {
   try {
-    // Verify admin token
     const authResult = verifyAdmin(request);
     if (!authResult.success) {
       return NextResponse.json(
@@ -107,19 +100,23 @@ export async function PUT(request) {
 
     await dbConnect();
     
-    const { jobId, updates } = await request.json();
+    const updateData = await request.json();
+    const { id, ...updateFields } = updateData;
     
-    // Find and update the job
-    const updatedJob = await Job.findByIdAndUpdate(
-      jobId,
-      { 
-        ...updates,
-        updatedAt: new Date()
-      },
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Job ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    const job = await Job.findByIdAndUpdate(
+      id,
+      { ...updateFields, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
     
-    if (!updatedJob) {
+    if (!job) {
       return NextResponse.json(
         { error: 'Job not found' },
         { status: 404 }
@@ -128,21 +125,21 @@ export async function PUT(request) {
     
     return NextResponse.json({ 
       success: true, 
-      job: updatedJob,
+      job,
       message: 'Job updated successfully' 
     });
   } catch (error) {
     console.error('Error updating job:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }
 }
 
+// DELETE - Delete job
 export async function DELETE(request) {
   try {
-    // Verify admin token
     const authResult = verifyAdmin(request);
     if (!authResult.success) {
       return NextResponse.json(
@@ -153,39 +150,33 @@ export async function DELETE(request) {
 
     await dbConnect();
     
-    const { jobId } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     
-    // Soft delete the job
-    const deletedJob = await Job.findByIdAndUpdate(
-      jobId,
-      { 
-        isActive: false,
-        updatedAt: new Date()
-      },
-      { new: true }
-    );
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Job ID is required' },
+        { status: 400 }
+      );
+    }
     
-    if (!deletedJob) {
+    const job = await Job.findByIdAndDelete(id);
+    
+    if (!job) {
       return NextResponse.json(
         { error: 'Job not found' },
         { status: 404 }
       );
     }
     
-    // Update order for remaining jobs
-    const remainingJobs = await Job.find({ isActive: true }).sort({ order: 1 });
-    for (let i = 0; i < remainingJobs.length; i++) {
-      await Job.findByIdAndUpdate(remainingJobs[i]._id, { order: i + 1 });
-    }
-    
     return NextResponse.json({ 
-      success: true, 
+      success: true,
       message: 'Job deleted successfully' 
     });
   } catch (error) {
     console.error('Error deleting job:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

@@ -7,22 +7,24 @@ import EditableJobs from '../src/components/sections/EditableJobs';
 // Fetch data from our new API routes
 async function getData() {
   try {
-    const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes] = await Promise.all([
+    const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/hero`, { cache: 'no-store' }),
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/about`, { cache: 'no-store' }),
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/jobs`, { cache: 'no-store' }),
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/services`, { cache: 'no-store' }),
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/projects`, { cache: 'no-store' }),
       fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/contact`, { cache: 'no-store' }),
+      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/education`, { cache: 'no-store' }),
     ]);
 
-    const [heroData, aboutData, jobsData, servicesData, projectsData, contactData] = await Promise.all([
+    const [heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData] = await Promise.all([
       heroRes.ok ? heroRes.json() : null,
       aboutRes.ok ? aboutRes.json() : null,
       jobsRes.ok ? jobsRes.json() : null,
       servicesRes.ok ? servicesRes.json() : null,
       projectsRes.ok ? projectsRes.json() : null,
       contactRes.ok ? contactRes.json() : null,
+      educationRes.ok ? educationRes.json() : null,
     ]);
 
     return {
@@ -32,6 +34,7 @@ async function getData() {
       servicesData,
       projectsData,
       contactData,
+      educationData,
     };
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -43,20 +46,44 @@ async function getData() {
       servicesData: null,
       projectsData: null,
       contactData: null,
+      educationData: null,
     };
   }
 }
 
 export default async function HomePage() {
-  const { heroData, aboutData, jobsData, servicesData, projectsData, contactData } = await getData();
+  const { heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData } = await getData();
+  
+  // Debug: Log the raw API responses
+  console.log('Raw API responses:', {
+    heroData,
+    aboutData,
+    jobsData,
+    servicesData,
+    projectsData,
+    contactData
+  });
   
   // Transform data to match component expectations
+  // API responses now return { section: data } format, so we need to extract the data
   const transformedHeroData = heroData?.hero || null;
-  const transformedAboutData = aboutData || null;
-  const transformedJobsData = jobsData || [];
-  const transformedServicesData = servicesData || [];
-  const transformedProjectsData = projectsData || [];
-  const transformedContactData = contactData || null;
+  const transformedAboutData = aboutData?.about || null;
+  const transformedJobsData = Array.isArray(jobsData?.jobs) ? jobsData.jobs : [];
+  const transformedServicesData = Array.isArray(servicesData?.services) ? servicesData.services : [];
+  const transformedProjectsData = Array.isArray(projectsData?.projects) ? projectsData.projects : [];
+  const transformedContactData = contactData?.contact || null;
+  const transformedEducationData = Array.isArray(educationData?.education) ? educationData.education : [];
+  
+  // Debug: Log the transformed data
+  console.log('Transformed data:', {
+    transformedHeroData,
+    transformedAboutData,
+    transformedJobsData,
+    transformedServicesData,
+    transformedProjectsData,
+    transformedContactData,
+    transformedEducationData
+  });
   
   return (
     <Layout 
@@ -68,10 +95,10 @@ export default async function HomePage() {
       <main className="fillHeight">
         <EditableHero data={transformedHeroData} />
         <EditableAbout data={transformedAboutData} />
-        <Education />
+        <Education data={transformedEducationData} />
         <EditableJobs data={transformedJobsData} />
         <Services data={transformedServicesData} />
-        <Featured data={transformedProjectsData?.filter(p => p.featured) || []} />
+        <Featured data={Array.isArray(transformedProjectsData) ? transformedProjectsData.filter(p => p.featured) : []} />
         <Projects data={transformedProjectsData} />
         <Contact data={transformedContactData} />
       </main>
@@ -84,9 +111,12 @@ export async function generateMetadata() {
     const heroRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/hero`, { cache: 'no-store' });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
+    // Extract hero data from the response object
+    const hero = heroData?.hero || heroData;
+    
     return {
-      title: heroData?.title || 'Nauman Noor',
-      description: heroData?.description || 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
+      title: hero?.title || hero?.subtitle || 'Nauman Noor',
+      description: hero?.description || hero?.longDescription || 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
     };
   } catch (error) {
     return {

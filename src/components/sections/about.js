@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import Image from 'next/image';
 import styled from 'styled-components';
 import { srConfig } from '@config';
 import sr from '@utils/sr';
 import { usePrefersReducedMotion } from '@hooks';
+import { formatTextWithBackticks } from '../../utils/textFormatting';
 
 const StyledAboutSection = styled.section`
   max-width: 900px;
@@ -101,7 +101,7 @@ const StyledPic = styled.div`
   }
 `;
 
-const About = () => {
+const About = ({ data }) => {
   const revealContainer = useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -113,38 +113,23 @@ const About = () => {
     sr.reveal(revealContainer.current, srConfig());
   }, []);
 
-  const skills = ['JavaScript (ES6+)', 'Python', 'React', 'Node.js', 'Machine Learning', 'Deep Learning', 'Data Science', 'Generative AI', 'RAGs', 'Automation'];
+  // Use dynamic data or fallback to defaults
+  const title = data?.title || "About Me";
+  const description = data?.description || "I'm a software engineer who specializes in building (and occasionally designing) exceptional digital experiences.";
+  const longDescription = data?.longDescription || "Currently, I'm an engineer at Upstatement focused on building accessible, inclusive products and digital experiences for a variety of clients.";
+  const skills = data?.skills?.map(skill => skill.name) || ['JavaScript (ES6+)', 'Python', 'React', 'Node.js', 'Machine Learning', 'Deep Learning', 'Data Science', 'Generative AI', 'RAGs', 'Automation'];
+  const imageUrl = data?.image?.url || "/images/me.jpg";
+  const imageAlt = data?.image?.alt || "Headshot";
 
   return (
     <StyledAboutSection id="about" ref={revealContainer}>
-      <h2 className="numbered-heading">About Me</h2>
+      <h2 className="numbered-heading">{title}</h2>
 
       <div className="inner">
         <StyledText>
           <div>
-            <p>
-              I&apos;m a software engineer who specializes in building (and occasionally designing) exceptional digital experiences. Currently, I&apos;m an engineer at{' '}
-              <a href="https://upstatement.com/" target="_blank" rel="noreferrer">
-                Upstatement
-              </a>{' '}
-              focused on building accessible, inclusive products and digital experiences for a variety of clients.
-            </p>
-
-            <p>
-              I also recently{' '}
-              <a href="https://www.newline.co/courses/build-a-full-stack-openai-app-with-next-js" target="_blank" rel="noreferrer">
-                launched a course
-              </a>{' '}
-              that covers everything you need to build a web app with the latest and greatest web technologies.
-            </p>
-
-            <p>
-              When I&apos;m not at the computer, I&apos;m probably hanging out with my{' '}
-              <a href="https://www.instagram.com/nauman.noor/" target="_blank" rel="noreferrer">
-                wife and two cats
-              </a>
-              .
-            </p>
+            <p>{formatTextWithBackticks(description)}</p>
+            {longDescription && <p>{formatTextWithBackticks(longDescription)}</p>}
           </div>
 
           <ul className="skills-list">
@@ -154,13 +139,11 @@ const About = () => {
 
         <StyledPic>
           <div className="wrapper">
-            <Image
+            <img
               className="img"
-              src="/images/me.jpg"
-              width={500}
-              height={500}
-              quality={95}
-              alt="Headshot"
+              src={imageUrl}
+              alt={imageAlt}
+              style={{ width: '100%', height: 'auto', borderRadius: 'var(--border-radius)' }}
             />
           </div>
         </StyledPic>

@@ -161,6 +161,21 @@ const Nav = ({ isHome }) => {
   const [scrolledToTop, setScrolledToTop] = useState(true);
   const prefersReducedMotion = usePrefersReducedMotion();
 
+  // Handle hash link clicks for smooth scrolling
+  const handleHashClick = (e, url) => {
+    if (url.startsWith('/#')) {
+      e.preventDefault();
+      const targetId = url.substring(2); // Remove '/#' to get the ID
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ 
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start'
+        });
+      }
+    }
+  };
+
   const handleScroll = () => {
     setScrolledToTop(window.pageYOffset < 50);
   };
@@ -195,6 +210,38 @@ const Nav = ({ isHome }) => {
   return (
     <StyledHeader $scrollDirection={scrollDirection} $scrolledToTop={scrolledToTop}>
       <StyledNav>
+        {/* Logo Section */}
+        <div className="logo">
+          <Link href="/">
+            <svg width="42" height="42" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <title>Logo</title>
+              <g>
+                {/* Hexagon outline */}
+                <path
+                  stroke="var(--green)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  d="M 50, 5
+                    L 11, 27
+                    L 11, 72
+                    L 50, 95
+                    L 89, 73
+                    L 89, 28 z"
+                />
+                {/* Letter N */}
+                <g transform="translate(20.000000, 20.000000)">
+                  <path
+                    d="M15,15 L15,45 L22,45 L22,30 L37,45 L45,45 L45,15 L38,15 L38,30 L23,15 Z"
+                    fill="var(--green)"
+                  />
+                </g>
+              </g>
+            </svg>
+          </Link>
+        </div>
+
         {prefersReducedMotion ? (
           <>
             <StyledLinks>
@@ -202,7 +249,7 @@ const Nav = ({ isHome }) => {
                 {navLinks &&
                   navLinks.map(({ url, name }, i) => (
                     <li key={i}>
-                      <Link href={url}>{name}</Link>
+                      <Link href={url} onClick={(e) => handleHashClick(e, url)}>{name}</Link>
                     </li>
                   ))}
               </ol>
@@ -221,7 +268,7 @@ const Nav = ({ isHome }) => {
                     navLinks.map(({ url, name }, i) => (
                       <CSSTransition key={i} classNames={fadeDownClass} timeout={timeout}>
                         <li key={i} style={{ transitionDelay: `${isHome ? i * 100 : 0}ms` }}>
-                          <Link href={url}>{name}</Link>
+                          <Link href={url} onClick={(e) => handleHashClick(e, url)}>{name}</Link>
                         </li>
                       </CSSTransition>
                     ))}

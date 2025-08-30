@@ -1,11 +1,8 @@
 import React from 'react';
-import { getAllProjects } from '../../lib/markdown';
 import ArchivePageClient from './ArchivePageClient';
 
 export default async function ArchivePage() {
-  const projects = getAllProjects();
-  
-  return <ArchivePageClient projects={projects} />;
+  return <ArchivePageClient />;
 }
 
 export async function generateMetadata() {

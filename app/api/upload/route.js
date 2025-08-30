@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { uploadImage } from '../../../lib/cloudinary';
 
-const JWT_SECRET = 'your-secret-key'; // Change this to a secure secret
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware to verify admin token
 const verifyAdmin = (request) => {
@@ -22,7 +21,7 @@ const verifyAdmin = (request) => {
       return { success: false, message: 'Token expired' };
     }
 
-    if (decoded.role !== 'admin') {
+    if (!decoded.isAdmin) {
       return { success: false, message: 'Insufficient permissions' };
     }
 
@@ -70,29 +69,22 @@ export async function POST(request) {
       );
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const originalName = file.name;
-    const extension = path.extname(originalName);
-    const filename = `upload_${timestamp}${extension}`;
-
-    // Save file to public/uploads directory
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    const filePath = path.join(uploadDir, filename);
-
-    // Convert file to buffer and save
+    // Convert file to buffer for Cloudinary
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    await writeFile(filePath, buffer);
+    // Upload to Cloudinary
+    const result = await uploadImage(buffer, {
+      folder: 'portfolio',
+      public_id: `project_${Date.now()}`,
+      overwrite: false
+    });
 
-    // Return the public URL
-    const publicUrl = `/uploads/${filename}`;
-
+    // Return the Cloudinary URL
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: filename,
+      url: result.url,
+      publicId: result.publicId,
       message: 'Image uploaded successfully'
     });
 

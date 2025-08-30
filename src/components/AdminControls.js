@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import AdminLogin from './AdminLogin';
 
 const StyledAdminControls = styled.div`
   position: fixed;
-  top: 20px;
+  top: 100px;
   right: 20px;
   z-index: 1000;
   display: flex;
@@ -49,53 +48,24 @@ const StyledButton = styled.button`
 `;
 
 const AdminControls = () => {
-  const { isAdmin, isLoading, login, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const { isAdmin, isLoading, editMode, logout, toggleEditMode } = useAuth();
 
-  if (isLoading) {
+  if (isLoading || !isAdmin) {
     return null;
   }
 
-  const handleLogin = (token) => {
-    login(token);
-    setShowLogin(false);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setEditMode(false);
-  };
-
   return (
-    <>
-      <StyledAdminControls>
-        {isAdmin ? (
-          <>
-            <StyledButton 
-              className={`edit-mode ${editMode ? 'active' : ''}`}
-              onClick={() => setEditMode(!editMode)}
-            >
-              {editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
-            </StyledButton>
-            <StyledButton className="logout" onClick={handleLogout}>
-              Logout
-            </StyledButton>
-          </>
-        ) : (
-          <StyledButton onClick={() => setShowLogin(true)}>
-            Admin Login
-          </StyledButton>
-        )}
-      </StyledAdminControls>
-
-      {showLogin && (
-        <AdminLogin 
-          onLogin={handleLogin}
-          onClose={() => setShowLogin(false)}
-        />
-      )}
-    </>
+    <StyledAdminControls>
+      <StyledButton 
+        className={`edit-mode ${editMode ? 'active' : ''}`}
+        onClick={toggleEditMode}
+      >
+        {editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
+      </StyledButton>
+      <StyledButton className="logout" onClick={logout}>
+        Logout
+      </StyledButton>
+    </StyledAdminControls>
   );
 };
 

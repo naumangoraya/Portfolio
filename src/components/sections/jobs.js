@@ -8,6 +8,7 @@ import { srConfig } from '@config';
 import { KEY_CODES } from '@utils';
 import sr from '@utils/sr';
 import { usePrefersReducedMotion } from '@hooks';
+import { formatTextWithBackticks } from '../../utils/textFormatting';
 
 const StyledJobsSection = styled.section`
   max-width: 700px;
@@ -344,19 +345,36 @@ const Jobs = ({ data = [] }) => {
                   aria-hidden={activeTabId !== i}
                   hidden={activeTabId !== i}>
                   <h3>
-                    <span>{title}</span>
+                    <span>{formatTextWithBackticks(title)}</span>
                     <span className="company">
                       &nbsp;@&nbsp;
                       <span className="inline-link">
-                        {company}
+                        {formatTextWithBackticks(company)}
                       </span>
                     </span>
                   </h3>
 
-                  <p className="range">{dates}</p>
-                  {location && <p className="location">📍 {location}</p>}
+                                  <p className="range">{dates}</p>
+                {location && (
+                  <p className="location">
+                    <svg 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="currentColor" 
+                      style={{ 
+                        display: 'inline-block', 
+                        marginRight: '6px', 
+                        color: 'var(--green)' 
+                      }}
+                    >
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    {location}
+                  </p>
+                )}
 
-                  <div className="description">{description}</div>
+                  <div className="description">{formatTextWithBackticks(description)}</div>
                   
                   {tech && tech.length > 0 && (
                     <div className="tech-stack">

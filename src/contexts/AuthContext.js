@@ -15,6 +15,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     // Check if admin is already logged in
@@ -48,19 +49,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = (token) => {
+    localStorage.setItem('adminToken', token);
     setIsAdmin(true);
   };
 
   const logout = () => {
     localStorage.removeItem('adminToken');
     setIsAdmin(false);
+    setEditMode(false);
+  };
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
   };
 
   const value = {
     isAdmin,
     isLoading,
+    editMode,
     login,
     logout,
+    toggleEditMode,
   };
 
   return (
