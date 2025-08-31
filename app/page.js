@@ -3,6 +3,14 @@ import { Layout, Education, Services, Featured, Projects, Contact } from '../src
 import EditableHero from '../src/components/sections/EditableHero';
 import EditableAbout from '../src/components/sections/EditableAbout';
 import EditableJobs from '../src/components/sections/EditableJobs';
+import dbConnect from '../lib/mongodb';
+import Hero from '../lib/models/Hero';
+import About from '../lib/models/About';
+import Job from '../lib/models/Job';
+import Service from '../lib/models/Service';
+import Project from '../lib/models/Project';
+import ContactModel from '../lib/models/Contact';
+import EducationModel from '../lib/models/Education';
 
 // Force dynamic rendering to avoid build-time data fetching issues
 export const dynamic = 'force-dynamic';
@@ -10,151 +18,42 @@ export const revalidate = 0; // Always revalidate
 export const fetchCache = 'force-no-store'; // Never cache
 export const preferredRegion = 'auto'; // Use closest region
 export const maxDuration = 30; // Extend function timeout
+export const runtime = 'nodejs'; // Ensure Node.js runtime for Mongoose
 
-// Fetch data from our new API routes
+// Fetch data directly from the database (no HTTP fetch)
 async function getData() {
   try {
-    // Get the base URL for the current environment
-    let baseUrl = '';
-    
-    if (process.env.NODE_ENV === 'development') {
-      baseUrl = 'http://localhost:3000';
-    } else if (process.env.VERCEL_URL) {
-      // Use Vercel's provided URL in production
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    } else if (process.env.NEXTAUTH_URL) {
-      // Fallback to NEXTAUTH_URL if available
-      baseUrl = process.env.NEXTAUTH_URL;
-    }
+    await dbConnect();
 
-    console.log('🔍 Environment:', process.env.NODE_ENV);
-    console.log('🔍 Base URL:', baseUrl);
-    console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
-    console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
-
-    // Add aggressive cache busting to prevent Vercel edge caching
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(7);
-    const cacheBuster = `?t=${timestamp}&r=${randomId}&v=${process.env.VERCEL_GIT_COMMIT_SHA || 'dev'}`;
-
-    const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
-             fetch(`${baseUrl}/api/hero${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-             fetch(`${baseUrl}/api/about${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-       fetch(`${baseUrl}/api/jobs${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-       fetch(`${baseUrl}/api/services${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-       fetch(`${baseUrl}/api/projects${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-       fetch(`${baseUrl}/api/contact${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-       fetch(`${baseUrl}/api/education${cacheBuster}`, { 
-         cache: 'no-store',
-         headers: {
-           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-           'Pragma': 'no-cache',
-           'Expires': '0',
-           'X-Requested-With': 'XMLHttpRequest',
-           'X-Cache-Buster': timestamp.toString()
-         }
-       }),
-    ]);
-
-    console.log('🔍 API Response Statuses:', {
-      hero: heroRes.status,
-      about: aboutRes.status,
-      jobs: jobsRes.status,
-      services: servicesRes.status,
-      projects: projectsRes.status,
-      contact: contactRes.status,
-      education: educationRes.status
-    });
-
-    const [heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData] = await Promise.all([
-      heroRes.ok ? heroRes.json() : null,
-      aboutRes.ok ? aboutRes.json() : null,
-      jobsRes.ok ? jobsRes.json() : null,
-      servicesRes.ok ? servicesRes.json() : null,
-      projectsRes.ok ? projectsRes.json() : null,
-      contactRes.ok ? contactRes.json() : null,
-      educationRes.ok ? educationRes.json() : null,
+    const [hero, about, jobs, services, projects, contact, education] = await Promise.all([
+      Hero.findOne({ isActive: true }).sort({ order: 1 }),
+      About.findOne({ isActive: true }).sort({ order: 1 }),
+      Job.find({ isActive: true }).sort({ order: 1 }),
+      Service.find({ isActive: true }).sort({ order: 1 }),
+      Project.find({ isActive: true }).sort({ order: 1 }),
+      ContactModel.findOne({ isActive: true }).sort({ order: 1 }),
+      EducationModel.find({ isActive: true }).sort({ order: 1, startDate: -1 })
     ]);
 
     return {
-      heroData,
-      aboutData,
-      jobsData,
-      servicesData,
-      projectsData,
-      contactData,
-      educationData,
+      heroData: { hero: hero || null },
+      aboutData: { about: about || null },
+      jobsData: { jobs: Array.isArray(jobs) ? jobs : [] },
+      servicesData: { services: Array.isArray(services) ? services : [] },
+      projectsData: { projects: Array.isArray(projects) ? projects : [] },
+      contactData: { contact: contact || null },
+      educationData: { education: Array.isArray(education) ? education : [] },
     };
   } catch (error) {
-    console.error('❌ Error fetching data:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
-    });
-    // Return null for all data so components can use their dummy data fallbacks
+    console.error('❌ Error fetching data from DB:', error);
     return {
-      heroData: null,
-      aboutData: null,
-      jobsData: null,
-      servicesData: null,
-      projectsData: null,
-      contactData: null,
-      educationData: null,
+      heroData: { hero: null },
+      aboutData: { about: null },
+      jobsData: { jobs: [] },
+      servicesData: { services: [] },
+      projectsData: { projects: [] },
+      contactData: { contact: null },
+      educationData: { education: [] },
     };
   }
 }
@@ -187,30 +86,30 @@ export default async function HomePage() {
   if (!data) {
     console.error('❌ All retry attempts failed, using fallback data');
     data = {
-      heroData: null,
-      aboutData: null,
-      jobsData: null,
-      servicesData: null,
-      projectsData: null,
-      contactData: null,
-      educationData: null,
+      heroData: { hero: null },
+      aboutData: { about: null },
+      jobsData: { jobs: [] },
+      servicesData: { services: [] },
+      projectsData: { projects: [] },
+      contactData: { contact: null },
+      educationData: { education: [] },
     };
   }
   
   const { heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData } = data;
   
-  // Debug: Log the raw API responses
-  console.log('Raw API responses:', {
+  // Debug: Log the raw DB responses
+  console.log('Raw DB responses:', {
     heroData,
     aboutData,
     jobsData,
     servicesData,
     projectsData,
-    contactData
+    contactData,
+    educationData
   });
   
   // Transform data to match component expectations
-  // API responses now return { section: data } format, so we need to extract the data
   const transformedHeroData = heroData?.hero || null;
   const transformedAboutData = aboutData?.about || null;
   const transformedJobsData = Array.isArray(jobsData?.jobs) ? jobsData.jobs : [];
@@ -219,7 +118,6 @@ export default async function HomePage() {
   const transformedContactData = contactData?.contact || null;
   const transformedEducationData = Array.isArray(educationData?.education) ? educationData.education : [];
   
-  // Debug: Log the transformed data
   console.log('Transformed data:', {
     transformedHeroData,
     transformedAboutData,
@@ -253,49 +151,15 @@ export default async function HomePage() {
 
 export async function generateMetadata() {
   try {
-    // Get the base URL for the current environment
-    let baseUrl = '';
-    
-    if (process.env.NODE_ENV === 'development') {
-      baseUrl = 'http://localhost:3000';
-    } else if (process.env.VERCEL_URL) {
-      // Use Vercel's provided URL in production
-      baseUrl = `https://${process.env.VERCEL_URL}`;
-    } else if (process.env.NEXTAUTH_URL) {
-      // Fallback to NEXTAUTH_URL if available
-      baseUrl = process.env.NEXTAUTH_URL;
-    }
-    
-    // Construct the URL more carefully with aggressive cache busting
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(7);
-    const apiUrl = `${baseUrl}/api/hero?t=${timestamp}&r=${randomId}&v=${process.env.VERCEL_GIT_COMMIT_SHA || 'dev'}`;
-    console.log('🔍 Metadata API URL:', apiUrl);
-    console.log('🔍 Environment:', process.env.NODE_ENV);
-    console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
-    
-         const heroRes = await fetch(apiUrl, { 
-       cache: 'no-store',
-       headers: {
-         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-         'Pragma': 'no-cache',
-         'Expires': '0',
-         'X-Requested-With': 'XMLHttpRequest',
-         'X-Cache-Buster': timestamp.toString()
-       }
-     });
-    const heroData = heroRes.ok ? await heroRes.json() : null;
-    
-    // Extract hero data from the response object
-    const hero = heroData?.hero || heroData;
+    await dbConnect();
+    const hero = await Hero.findOne({ isActive: true }).sort({ order: 1 });
     
     return {
       title: hero?.title || hero?.subtitle || 'Nauman Noor',
       description: hero?.description || hero?.longDescription || 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
     };
   } catch (error) {
-    console.error('Error generating metadata:', error);
-    // Return fallback metadata to prevent build failures
+    console.error('Error generating metadata from DB:', error);
     return {
       title: 'Nauman Noor',
       description: 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
