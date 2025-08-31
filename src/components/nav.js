@@ -9,6 +9,8 @@ import { navLinks } from '@config';
 import { loaderDelay } from '@utils';
 import { useScrollDirection, usePrefersReducedMotion } from '@hooks';
 import { Menu } from '@components';
+import { useAuth } from '../contexts/AuthContext';
+import ResumeUpload from './ResumeUpload';
 
 const StyledHeader = styled.header`
   ${({ theme }) => theme.mixins.flexBetween};
@@ -160,6 +162,7 @@ const Nav = ({ isHome }) => {
   const scrollDirection = useScrollDirection('down');
   const [scrolledToTop, setScrolledToTop] = useState(true);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { isAdmin } = useAuth();
 
   // Handle hash link clicks for smooth scrolling
   const handleHashClick = (e, url) => {
@@ -201,7 +204,9 @@ const Nav = ({ isHome }) => {
   const fadeClass = isHome ? 'fade' : '';
   const fadeDownClass = isHome ? 'fadedown' : '';
 
-  const ResumeLink = (
+  const ResumeLink = isAdmin ? (
+    <ResumeUpload />
+  ) : (
     <a className="resume-button" href="/resume.pdf" target="_blank" rel="noopener noreferrer">
       Resume
     </a>
