@@ -6,6 +6,8 @@ import EditableJobs from '../src/components/sections/EditableJobs';
 
 // Force dynamic rendering to avoid build-time data fetching issues
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Always revalidate
+export const fetchCache = 'force-no-store'; // Never cache
 
 // Fetch data from our new API routes
 async function getData() {
@@ -28,14 +30,67 @@ async function getData() {
     console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
     console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
 
+    // Add timestamp to prevent caching issues
+    const timestamp = Date.now();
+    const cacheBuster = `?t=${timestamp}`;
+
     const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
-      fetch(`${baseUrl}/api/hero`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/about`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/jobs`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/services`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/projects`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/contact`, { cache: 'no-store' }),
-      fetch(`${baseUrl}/api/education`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/hero${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/about${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/jobs${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/services${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/projects${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/contact${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
+      fetch(`${baseUrl}/api/education${cacheBuster}`, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }),
     ]);
 
     console.log('🔍 API Response Statuses:', {
@@ -88,7 +143,44 @@ async function getData() {
 }
 
 export default async function HomePage() {
-  const { heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData } = await getData();
+  // Add retry mechanism for data fetching
+  let retryCount = 0;
+  let data = null;
+  
+  while (retryCount < 3 && !data) {
+    try {
+      data = await getData();
+      if (data && (data.heroData || data.aboutData || data.jobsData)) {
+        break; // Data fetched successfully
+      }
+      retryCount++;
+      if (retryCount < 3) {
+        console.log(`🔄 Retry ${retryCount}/3 - waiting 1 second...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      console.error(`❌ Attempt ${retryCount + 1} failed:`, error);
+      retryCount++;
+      if (retryCount < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  }
+  
+  if (!data) {
+    console.error('❌ All retry attempts failed, using fallback data');
+    data = {
+      heroData: null,
+      aboutData: null,
+      jobsData: null,
+      servicesData: null,
+      projectsData: null,
+      contactData: null,
+      educationData: null,
+    };
+  }
+  
+  const { heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData } = data;
   
   // Debug: Log the raw API responses
   console.log('Raw API responses:', {
@@ -157,13 +249,21 @@ export async function generateMetadata() {
       baseUrl = process.env.NEXTAUTH_URL;
     }
     
-    // Construct the URL more carefully
-    const apiUrl = `${baseUrl}/api/hero`;
+    // Construct the URL more carefully with cache busting
+    const timestamp = Date.now();
+    const apiUrl = `${baseUrl}/api/hero?t=${timestamp}`;
     console.log('🔍 Metadata API URL:', apiUrl);
     console.log('🔍 Environment:', process.env.NODE_ENV);
     console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
     
-    const heroRes = await fetch(apiUrl, { cache: 'no-store' });
+    const heroRes = await fetch(apiUrl, { 
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
     // Extract hero data from the response object
