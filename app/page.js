@@ -4,17 +4,20 @@ import EditableHero from '../src/components/sections/EditableHero';
 import EditableAbout from '../src/components/sections/EditableAbout';
 import EditableJobs from '../src/components/sections/EditableJobs';
 
+// Force dynamic rendering to avoid build-time data fetching issues
+export const dynamic = 'force-dynamic';
+
 // Fetch data from our new API routes
 async function getData() {
   try {
     const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/hero`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/about`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/jobs`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/services`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/projects`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/contact`, { cache: 'no-store' }),
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/education`, { cache: 'no-store' }),
+      fetch('/api/hero', { cache: 'no-store' }),
+      fetch('/api/about', { cache: 'no-store' }),
+      fetch('/api/jobs', { cache: 'no-store' }),
+      fetch('/api/services', { cache: 'no-store' }),
+      fetch('/api/projects', { cache: 'no-store' }),
+      fetch('/api/contact', { cache: 'no-store' }),
+      fetch('/api/education', { cache: 'no-store' }),
     ]);
 
     const [heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData] = await Promise.all([
@@ -108,7 +111,7 @@ export default async function HomePage() {
 
 export async function generateMetadata() {
   try {
-    const heroRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/hero`, { cache: 'no-store' });
+    const heroRes = await fetch('/api/hero', { cache: 'no-store' });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
     // Extract hero data from the response object
@@ -119,6 +122,8 @@ export async function generateMetadata() {
       description: hero?.description || hero?.longDescription || 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
     };
   } catch (error) {
+    console.error('Error generating metadata:', error);
+    // Return fallback metadata to prevent build failures
     return {
       title: 'Nauman Noor',
       description: 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
