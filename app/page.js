@@ -8,6 +8,8 @@ import EditableJobs from '../src/components/sections/EditableJobs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // Always revalidate
 export const fetchCache = 'force-no-store'; // Never cache
+export const preferredRegion = 'auto'; // Use closest region
+export const maxDuration = 30; // Extend function timeout
 
 // Fetch data from our new API routes
 async function getData() {
@@ -30,67 +32,82 @@ async function getData() {
     console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
     console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
 
-    // Add timestamp to prevent caching issues
+    // Add aggressive cache busting to prevent Vercel edge caching
     const timestamp = Date.now();
-    const cacheBuster = `?t=${timestamp}`;
+    const randomId = Math.random().toString(36).substring(7);
+    const cacheBuster = `?t=${timestamp}&r=${randomId}&v=${process.env.VERCEL_GIT_COMMIT_SHA || 'dev'}`;
 
     const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
-      fetch(`${baseUrl}/api/hero${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/about${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/jobs${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/services${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/projects${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/contact${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
-      fetch(`${baseUrl}/api/education${cacheBuster}`, { 
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }),
+             fetch(`${baseUrl}/api/hero${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+             fetch(`${baseUrl}/api/about${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+       fetch(`${baseUrl}/api/jobs${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+       fetch(`${baseUrl}/api/services${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+       fetch(`${baseUrl}/api/projects${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+       fetch(`${baseUrl}/api/contact${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
+       fetch(`${baseUrl}/api/education${cacheBuster}`, { 
+         cache: 'no-store',
+         headers: {
+           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+           'Pragma': 'no-cache',
+           'Expires': '0',
+           'X-Requested-With': 'XMLHttpRequest',
+           'X-Cache-Buster': timestamp.toString()
+         }
+       }),
     ]);
 
     console.log('🔍 API Response Statuses:', {
@@ -249,21 +266,24 @@ export async function generateMetadata() {
       baseUrl = process.env.NEXTAUTH_URL;
     }
     
-    // Construct the URL more carefully with cache busting
+    // Construct the URL more carefully with aggressive cache busting
     const timestamp = Date.now();
-    const apiUrl = `${baseUrl}/api/hero?t=${timestamp}`;
+    const randomId = Math.random().toString(36).substring(7);
+    const apiUrl = `${baseUrl}/api/hero?t=${timestamp}&r=${randomId}&v=${process.env.VERCEL_GIT_COMMIT_SHA || 'dev'}`;
     console.log('🔍 Metadata API URL:', apiUrl);
     console.log('🔍 Environment:', process.env.NODE_ENV);
     console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
     
-    const heroRes = await fetch(apiUrl, { 
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
+         const heroRes = await fetch(apiUrl, { 
+       cache: 'no-store',
+       headers: {
+         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+         'Pragma': 'no-cache',
+         'Expires': '0',
+         'X-Requested-With': 'XMLHttpRequest',
+         'X-Cache-Buster': timestamp.toString()
+       }
+     });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
     // Extract hero data from the response object
