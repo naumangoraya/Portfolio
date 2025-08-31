@@ -35,6 +35,10 @@ const verifyAdmin = (request) => {
 
 export async function GET() {
   try {
+    console.log('🔍 Hero API called');
+    console.log('🔍 Environment:', process.env.NODE_ENV);
+    console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
+    
     console.log('Connecting to database...');
     await dbConnect();
     console.log('Database connected successfully');
@@ -50,8 +54,13 @@ export async function GET() {
     console.log('Hero data being returned:', JSON.stringify(hero, null, 2));
     return NextResponse.json({ hero });
   } catch (error) {
-    console.error('Error fetching hero:', error);
-    console.error('Error stack:', error.stack);
+    console.error('❌ Error fetching hero:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      name: error.name
+    });
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }

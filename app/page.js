@@ -10,15 +10,34 @@ export const dynamic = 'force-dynamic';
 // Fetch data from our new API routes
 async function getData() {
   try {
+    // Get the base URL for the current environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000' 
+      : '';
+
+    console.log('🔍 Environment:', process.env.NODE_ENV);
+    console.log('🔍 Base URL:', baseUrl);
+    console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
+
     const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
-      fetch('/api/hero', { cache: 'no-store' }),
-      fetch('/api/about', { cache: 'no-store' }),
-      fetch('/api/jobs', { cache: 'no-store' }),
-      fetch('/api/services', { cache: 'no-store' }),
-      fetch('/api/projects', { cache: 'no-store' }),
-      fetch('/api/contact', { cache: 'no-store' }),
-      fetch('/api/education', { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/hero`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/about`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/jobs`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/services`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/projects`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/contact`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/education`, { cache: 'no-store' }),
     ]);
+
+    console.log('🔍 API Response Statuses:', {
+      hero: heroRes.status,
+      about: aboutRes.status,
+      jobs: jobsRes.status,
+      services: servicesRes.status,
+      projects: projectsRes.status,
+      contact: contactRes.status,
+      education: educationRes.status
+    });
 
     const [heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData] = await Promise.all([
       heroRes.ok ? heroRes.json() : null,
@@ -40,7 +59,12 @@ async function getData() {
       educationData,
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('❌ Error fetching data:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     // Return null for all data so components can use their dummy data fallbacks
     return {
       heroData: null,
@@ -111,7 +135,12 @@ export default async function HomePage() {
 
 export async function generateMetadata() {
   try {
-    const heroRes = await fetch('/api/hero', { cache: 'no-store' });
+    // Get the base URL for the current environment
+    const baseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000' 
+      : '';
+      
+    const heroRes = await fetch(`${baseUrl}/api/hero`, { cache: 'no-store' });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
     // Extract hero data from the response object
