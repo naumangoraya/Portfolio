@@ -3,6 +3,9 @@ import dbConnect from '../../../lib/mongodb';
 import Job from '../../../lib/models/Job';
 import jwt from 'jsonwebtoken';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // Middleware to verify admin token
 const verifyAdmin = (request) => {
   const authHeader = request.headers.get('authorization');
