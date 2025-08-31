@@ -11,12 +11,21 @@ export const dynamic = 'force-dynamic';
 async function getData() {
   try {
     // Get the base URL for the current environment
-    const baseUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000' 
-      : '';
+    let baseUrl = '';
+    
+    if (process.env.NODE_ENV === 'development') {
+      baseUrl = 'http://localhost:3000';
+    } else if (process.env.VERCEL_URL) {
+      // Use Vercel's provided URL in production
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else if (process.env.NEXTAUTH_URL) {
+      // Fallback to NEXTAUTH_URL if available
+      baseUrl = process.env.NEXTAUTH_URL;
+    }
 
     console.log('🔍 Environment:', process.env.NODE_ENV);
     console.log('🔍 Base URL:', baseUrl);
+    console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
     console.log('🔍 MONGODB_URI exists:', !!process.env.MONGODB_URI);
 
     const [heroRes, aboutRes, jobsRes, servicesRes, projectsRes, contactRes, educationRes] = await Promise.all([
@@ -136,11 +145,25 @@ export default async function HomePage() {
 export async function generateMetadata() {
   try {
     // Get the base URL for the current environment
-    const baseUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000' 
-      : '';
-      
-    const heroRes = await fetch(`${baseUrl}/api/hero`, { cache: 'no-store' });
+    let baseUrl = '';
+    
+    if (process.env.NODE_ENV === 'development') {
+      baseUrl = 'http://localhost:3000';
+    } else if (process.env.VERCEL_URL) {
+      // Use Vercel's provided URL in production
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else if (process.env.NEXTAUTH_URL) {
+      // Fallback to NEXTAUTH_URL if available
+      baseUrl = process.env.NEXTAUTH_URL;
+    }
+    
+    // Construct the URL more carefully
+    const apiUrl = `${baseUrl}/api/hero`;
+    console.log('🔍 Metadata API URL:', apiUrl);
+    console.log('🔍 Environment:', process.env.NODE_ENV);
+    console.log('🔍 VERCEL_URL:', process.env.VERCEL_URL);
+    
+    const heroRes = await fetch(apiUrl, { cache: 'no-store' });
     const heroData = heroRes.ok ? await heroRes.json() : null;
     
     // Extract hero data from the response object
