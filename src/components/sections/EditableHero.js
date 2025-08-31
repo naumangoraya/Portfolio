@@ -71,6 +71,7 @@ const StyledHeroSection = styled.section`
 
   h3 {
     margin-top: 5px;
+    /* margin-bottom: 50px; */
     color: var(--slate);
     line-height: 0.9;
   }

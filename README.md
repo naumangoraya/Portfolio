@@ -41,8 +41,8 @@ A modern, database-driven portfolio website built with Next.js 14, MongoDB, and 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 14, React 18, Styled Components
-- **Backend**: Next.js API Routes, MongoDB, Mongoose
-- **Database**: MongoDB (Local or Cloud)
+- **Backend**: Next.js API Routes, MongoDB Atlas, Mongoose
+- **Database**: MongoDB Atlas (Cloud)
 - **Image Storage**: Cloudinary
 - **Authentication**: JWT
 - **Styling**: Styled Components, CSS-in-JS
@@ -60,8 +60,8 @@ npm install
 ### 2. Environment Setup
 Create `.env.local` file:
 ```bash
-# MongoDB (Local)
-MONGODB_URI=mongodb://localhost:27017/portfolio_v4
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/portfolio_v4?retryWrites=true&w=majority
 
 # JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-here
@@ -76,28 +76,17 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=admin123
 ```
 
-### 3. Start MongoDB
-```bash
-# Local MongoDB
-mongod
+### 3. Environment Setup
+Create `.env.local` file with your MongoDB Atlas connection string and other credentials.
 
-# Or Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
-```
-
-### 4. Seed Database
-```bash
-npm run db:seed:all
-```
-
-### 5. Start Development
+### 4. Start Development
 ```bash
 npm run dev
 ```
 
 Visit `http://localhost:3000` to see your portfolio!
 
-## 📖 Detailed Setup
+## 📖 MongoDB Atlas Setup
 
 For comprehensive setup instructions, see [SETUP.md](./SETUP.md)
 
@@ -115,8 +104,7 @@ v4-main/
 │   └── cloudinary.js      # Image management
 ├── src/                   # Source code
 │   └── components/        # React components
-├── scripts/               # Database seeding
-└── content/               # Static content
+└── lib/                   # Core libraries
 ```
 
 ## 🔌 API Endpoints
