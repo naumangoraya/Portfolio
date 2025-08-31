@@ -40,8 +40,9 @@ const StyledHeroSection = styled.section`
   }
 
   p {
-    margin: 20px 0 0;
+    margin: 20px 0 0 !important;
     max-width: 540px;
+    font-size: var(--fz-lg) !important;
   }
 
   .email-link {

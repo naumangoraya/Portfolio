@@ -20,41 +20,81 @@ export const preferredRegion = 'auto'; // Use closest region
 export const maxDuration = 30; // Extend function timeout
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Mongoose
 
+// Helper function to serialize Mongoose objects to plain JavaScript objects
+function serializeData(data) {
+  if (!data) return null;
+  
+  // If it's an array, serialize each item
+  if (Array.isArray(data)) {
+    return data.map(item => serializeData(item));
+  }
+  
+  // If it's an object, convert to plain object and handle special cases
+  if (typeof data === 'object' && data !== null) {
+    // Handle Mongoose ObjectId
+    if (data._id && typeof data._id === 'object' && data._id.toString) {
+      data = { ...data, _id: data._id.toString() };
+    }
+    
+    // Convert to plain object and recursively serialize nested properties
+    const plainObj = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (key.startsWith('$')) continue; // Skip Mongoose internal properties
+      plainObj[key] = serializeData(value);
+    }
+    return plainObj;
+  }
+  
+  // Return primitive values as-is
+  return data;
+}
+
 // Fetch data directly from the database (no HTTP fetch)
 async function getData() {
   try {
+    console.log('🔍 Starting data fetch from database...');
+    
+    // Connect to database
     await dbConnect();
-
-    const [hero, about, jobs, services, projects, contact, education] = await Promise.all([
-      Hero.findOne({ isActive: true }).sort({ order: 1 }),
-      About.findOne({ isActive: true }).sort({ order: 1 }),
-      Job.find({ isActive: true }).sort({ order: 1 }),
-      Service.find({ isActive: true }).sort({ order: 1 }),
-      Project.find({ isActive: true }).sort({ order: 1 }),
-      ContactModel.findOne({ isActive: true }).sort({ order: 1 }),
-      EducationModel.find({ isActive: true }).sort({ order: 1, startDate: -1 })
+    
+    // Fetch all data directly from MongoDB using .lean() for plain objects
+    const [heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData] = await Promise.all([
+      Hero.findOne({ isActive: true }).lean(),
+      About.findOne({ isActive: true }).lean(),
+      Job.find({ isActive: true }).sort({ order: 1 }).lean(),
+      Service.find({ isActive: true }).sort({ order: 1 }).lean(),
+      Project.find({ isActive: true }).sort({ order: 1 }).lean(),
+      ContactModel.findOne({ isActive: true }).lean(),
+      EducationModel.find({ isActive: true }).sort({ order: 1, startDate: -1 }).lean()
     ]);
 
-    return {
-      heroData: { hero: hero || null },
-      aboutData: { about: about || null },
-      jobsData: { jobs: Array.isArray(jobs) ? jobs : [] },
-      servicesData: { services: Array.isArray(services) ? services : [] },
-      projectsData: { projects: Array.isArray(projects) ? projects : [] },
-      contactData: { contact: contact || null },
-      educationData: { education: Array.isArray(education) ? education : [] },
+    console.log('Raw DB responses:', {
+      heroData: { hero: heroData },
+      aboutData: { about: aboutData },
+      jobsData: { jobs: jobsData },
+      servicesData: { services: servicesData },
+      projectsData: { projects: projectsData },
+      contactData: { contact: contactData },
+      educationData: { education: educationData }
+    });
+
+    // Transform and serialize data
+    const transformedData = {
+      transformedHeroData: serializeData(heroData),
+      transformedAboutData: serializeData(aboutData),
+      transformedJobsData: serializeData(jobsData),
+      transformedServicesData: serializeData(servicesData),
+      transformedProjectsData: serializeData(projectsData),
+      transformedContactData: serializeData(contactData),
+      transformedEducationData: serializeData(educationData)
     };
+
+    console.log('Transformed data:', transformedData);
+    
+    return transformedData;
   } catch (error) {
-    console.error('❌ Error fetching data from DB:', error);
-    return {
-      heroData: { hero: null },
-      aboutData: { about: null },
-      jobsData: { jobs: [] },
-      servicesData: { services: [] },
-      projectsData: { projects: [] },
-      contactData: { contact: null },
-      educationData: { education: [] },
-    };
+    console.error('❌ Error fetching data:', error);
+    throw error;
   }
 }
 
@@ -66,7 +106,7 @@ export default async function HomePage() {
   while (retryCount < 3 && !data) {
     try {
       data = await getData();
-      if (data && (data.heroData || data.aboutData || data.jobsData)) {
+      if (data && (data.transformedHeroData || data.transformedAboutData || data.transformedJobsData)) {
         break; // Data fetched successfully
       }
       retryCount++;
@@ -86,39 +126,20 @@ export default async function HomePage() {
   if (!data) {
     console.error('❌ All retry attempts failed, using fallback data');
     data = {
-      heroData: { hero: null },
-      aboutData: { about: null },
-      jobsData: { jobs: [] },
-      servicesData: { services: [] },
-      projectsData: { projects: [] },
-      contactData: { contact: null },
-      educationData: { education: [] },
+      transformedHeroData: null,
+      transformedAboutData: null,
+      transformedJobsData: [],
+      transformedServicesData: [],
+      transformedProjectsData: [],
+      transformedContactData: null,
+      transformedEducationData: []
     };
   }
   
-  const { heroData, aboutData, jobsData, servicesData, projectsData, contactData, educationData } = data;
+  const { transformedHeroData, transformedAboutData, transformedJobsData, transformedServicesData, transformedProjectsData, transformedContactData, transformedEducationData } = data;
   
   // Debug: Log the raw DB responses
   console.log('Raw DB responses:', {
-    heroData,
-    aboutData,
-    jobsData,
-    servicesData,
-    projectsData,
-    contactData,
-    educationData
-  });
-  
-  // Transform data to match component expectations
-  const transformedHeroData = heroData?.hero || null;
-  const transformedAboutData = aboutData?.about || null;
-  const transformedJobsData = Array.isArray(jobsData?.jobs) ? jobsData.jobs : [];
-  const transformedServicesData = Array.isArray(servicesData?.services) ? servicesData.services : [];
-  const transformedProjectsData = Array.isArray(projectsData?.projects) ? projectsData.projects : [];
-  const transformedContactData = contactData?.contact || null;
-  const transformedEducationData = Array.isArray(educationData?.education) ? educationData.education : [];
-  
-  console.log('Transformed data:', {
     transformedHeroData,
     transformedAboutData,
     transformedJobsData,
@@ -128,22 +149,41 @@ export default async function HomePage() {
     transformedEducationData
   });
   
+  // Transform data to match component expectations
+  const transformedHeroDataFinal = transformedHeroData || null;
+  const transformedAboutDataFinal = transformedAboutData || null;
+  const transformedJobsDataFinal = Array.isArray(transformedJobsData) ? transformedJobsData : [];
+  const transformedServicesDataFinal = Array.isArray(transformedServicesData) ? transformedServicesData : [];
+  const transformedProjectsDataFinal = Array.isArray(transformedProjectsData) ? transformedProjectsData : [];
+  const transformedContactDataFinal = transformedContactData || null;
+  const transformedEducationDataFinal = Array.isArray(transformedEducationData) ? transformedEducationData : [];
+  
+  console.log('Transformed data:', {
+    transformedHeroDataFinal,
+    transformedAboutDataFinal,
+    transformedJobsDataFinal,
+    transformedServicesDataFinal,
+    transformedProjectsDataFinal,
+    transformedContactDataFinal,
+    transformedEducationDataFinal
+  });
+  
   return (
     <Layout 
-      jobsData={transformedJobsData} 
-      projectsData={transformedProjectsData}
-      servicesData={transformedServicesData}
-      contactData={transformedContactData}
+      jobsData={transformedJobsDataFinal} 
+      projectsData={transformedProjectsDataFinal}
+      servicesData={transformedServicesDataFinal}
+      contactData={transformedContactDataFinal}
     >
       <main className="fillHeight">
-        <EditableHero data={transformedHeroData} />
-        <EditableAbout data={transformedAboutData} />
-        <Education data={transformedEducationData} />
-        <EditableJobs data={transformedJobsData} />
-        <Services data={transformedServicesData} />
-        <Featured data={Array.isArray(transformedProjectsData) ? transformedProjectsData.filter(p => p.featured) : []} />
-        <Projects data={transformedProjectsData} />
-        <Contact data={transformedContactData} />
+        <EditableHero data={transformedHeroDataFinal} />
+        <EditableAbout data={transformedAboutDataFinal} />
+        <Education data={transformedEducationDataFinal} />
+        <EditableJobs data={transformedJobsDataFinal} />
+        <Services data={transformedServicesDataFinal} />
+        <Featured data={Array.isArray(transformedProjectsDataFinal) ? transformedProjectsDataFinal.filter(p => p.featured) : []} />
+        <Projects data={transformedProjectsDataFinal} />
+        <Contact data={transformedContactDataFinal} />
       </main>
     </Layout>
   );
@@ -151,18 +191,49 @@ export default async function HomePage() {
 
 export async function generateMetadata() {
   try {
+    console.log('🔍 Generating metadata...');
+    
+    // Connect to database
     await dbConnect();
-    const hero = await Hero.findOne({ isActive: true }).sort({ order: 1 });
+    
+    // Fetch hero data directly for metadata
+    const heroData = await Hero.findOne({ isActive: true }).lean();
+    
+    if (!heroData) {
+      console.log('⚠️ No hero data found, using fallback metadata');
+      return {
+        title: 'Portfolio',
+        description: 'Welcome to my portfolio',
+      };
+    }
+
+    // Serialize the data
+    const serializedHero = serializeData(heroData);
+    
+    console.log('🔍 Hero data for metadata:', serializedHero);
     
     return {
-      title: hero?.title || hero?.subtitle || 'Nauman Noor',
-      description: hero?.description || hero?.longDescription || 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
+      title: `${serializedHero.name || serializedHero.title || 'Portfolio'} - ${serializedHero.tagline || serializedHero.subtitle || 'Developer'}`,
+      description: serializedHero.description || serializedHero.longDescription || 'Welcome to my portfolio',
+      keywords: ['portfolio', 'developer', 'web development', 'software engineer'],
+      authors: [{ name: serializedHero.name || serializedHero.title || 'Developer' }],
+      openGraph: {
+        title: `${serializedHero.name || serializedHero.title || 'Portfolio'} - ${serializedHero.tagline || serializedHero.subtitle || 'Developer'}`,
+        description: serializedHero.description || serializedHero.longDescription || 'Welcome to my portfolio',
+        type: 'website',
+        locale: 'en_US',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${serializedHero.name || serializedHero.title || 'Portfolio'} - ${serializedHero.tagline || serializedHero.subtitle || 'Developer'}`,
+        description: serializedHero.description || serializedHero.longDescription || 'Welcome to my portfolio',
+      },
     };
   } catch (error) {
-    console.error('Error generating metadata from DB:', error);
+    console.error('❌ Error generating metadata:', error);
     return {
-      title: 'Nauman Noor',
-      description: 'Nauman Noor is a software engineer who specializes in building exceptional digital experiences.',
+      title: 'Portfolio',
+      description: 'Welcome to my portfolio',
     };
   }
 }

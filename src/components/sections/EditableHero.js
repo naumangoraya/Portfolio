@@ -58,7 +58,7 @@ const StyledHeroSection = styled.section`
   }
 
   h1 {
-    margin: 0 0 30px 4px;
+    margin: 0 0 35px 4px;
     color: var(--green);
     font-family: var(--font-mono);
     font-size: clamp(var(--fz-sm), 5vw, var(--fz-md));
@@ -74,11 +74,13 @@ const StyledHeroSection = styled.section`
     /* margin-bottom: 50px; */
     color: var(--slate);
     line-height: 0.9;
+
   }
 
   p {
-    margin: 20px 0 0;
+    margin: 30px 0 0 !important;
     max-width: 540px;
+    font-size: var(--fz-lg) !important;
   }
 
   .email-link {

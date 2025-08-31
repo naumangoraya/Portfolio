@@ -328,7 +328,7 @@ const StyledModal = styled.div`
   }
 `;
 
-export default function ArchivePageClient() {
+export default function ArchivePageClient({ initialData = [] }) {
   const revealTitle = useRef(null);
   const revealTable = useRef(null);
   const revealProjects = useRef([]);
@@ -337,7 +337,7 @@ export default function ArchivePageClient() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [archiveData, setArchiveData] = useState([]);
+  const [archiveData, setArchiveData] = useState(initialData);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -352,12 +352,19 @@ export default function ArchivePageClient() {
     content: ''
   });
 
-     // Fetch initial data
+     // Fetch initial data only if not provided as prop
    useEffect(() => {
-     console.log('🚀 Component mounted, fetching initial archive data...');
+     console.log('🚀 Component mounted, initialData:', initialData?.length || 0, 'items');
      console.log('📊 Initial archiveData state:', archiveData);
-     refreshArchiveData();
-   }, []);
+     
+     // Only fetch from API if no initialData provided
+     if (!initialData || initialData.length === 0) {
+       console.log('🔄 No initial data provided, fetching from API...');
+       refreshArchiveData();
+     } else {
+       console.log('✅ Using provided initialData, no API fetch needed');
+     }
+   }, [initialData]);
 
   useEffect(() => {
     if (prefersReducedMotion) {
