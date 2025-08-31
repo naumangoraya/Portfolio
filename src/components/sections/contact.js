@@ -947,15 +947,28 @@ const Contact = ({ data }) => {
     setIsSubmitting(true);
 
     try {
-      // Here you would typically send the form data to your backend
-      // For now, we'll just simulate a submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Reset form
-      setFormData({ name: '', email: '', message: '' });
-      toast.success('Message sent successfully! (This is a demo)');
+      // Send form data to the API
+      const response = await fetch('/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Reset form on success
+        setFormData({ name: '', email: '', message: '' });
+        toast.success(result.message || 'Message sent successfully! Check your email for confirmation.');
+      } else {
+        // Handle API errors
+        toast.error(result.error || 'Failed to send message. Please try again.');
+      }
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      console.error('Error submitting form:', error);
+      toast.error('Failed to send message. Please check your internet connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
