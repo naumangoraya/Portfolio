@@ -72,8 +72,8 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
 # Admin Credentials
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=ad
+ADMIN_PASSWORD=ad
 ```
 
 ### 3. Environment Setup
