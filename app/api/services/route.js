@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import Service from '../../../lib/models/Service';
 import jwt from 'jsonwebtoken';
@@ -74,11 +75,13 @@ export async function POST(request) {
     });
     
     await service.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       service,
-      message: 'Service created successfully' 
+      message: 'Service created successfully'
     });
   } catch (error) {
     console.error('Error creating service:', error);
@@ -125,10 +128,12 @@ export async function PUT(request) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       service,
-      message: 'Service updated successfully' 
+      message: 'Service updated successfully'
     });
   } catch (error) {
     console.error('Error updating service:', error);
@@ -171,9 +176,11 @@ export async function DELETE(request) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       success: true,
-      message: 'Service deleted successfully' 
+      message: 'Service deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting service:', error);

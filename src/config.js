@@ -1,6 +1,9 @@
 module.exports = {
-  email: 'naumanjaat@gmail.com',
-  phone: '+923106623823',
+  // Contact info is env-driven so it isn't hardcoded in source. The DB
+  // Contact document remains the source of truth for the Contact section;
+  // these fallbacks feed the static sidebar/footer.
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'naumanjaat@gmail.com',
+  phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || '',
 
   socialMedia: [
     {

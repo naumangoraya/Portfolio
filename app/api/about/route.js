@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import About from '../../../lib/models/About';
 import jwt from 'jsonwebtoken';
@@ -77,11 +78,13 @@ export async function POST(request) {
     });
     
     await about.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       about,
-      message: 'About section created successfully' 
+      message: 'About section created successfully'
     });
   } catch (error) {
     console.error('Error creating about:', error);
@@ -124,11 +127,13 @@ export async function PUT(request) {
     }
     
     await about.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       about,
-      message: 'About section updated successfully' 
+      message: 'About section updated successfully'
     });
   } catch (error) {
     console.error('Error updating about:', error);
@@ -171,9 +176,11 @@ export async function DELETE(request) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       success: true,
-      message: 'About section deleted successfully' 
+      message: 'About section deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting about:', error);

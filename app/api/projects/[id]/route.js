@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Project from '../../../../lib/models/Project';
 import jwt from 'jsonwebtoken';
@@ -97,9 +98,11 @@ export async function PUT(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      project: updatedProject 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      project: updatedProject
     });
   } catch (error) {
     console.error('Error updating project:', error);
@@ -133,9 +136,11 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Project deleted successfully' 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Project deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting project:', error);

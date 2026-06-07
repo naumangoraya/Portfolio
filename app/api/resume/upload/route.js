@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import jwt from 'jsonwebtoken';
 import dbConnect from '../../../../lib/mongodb';
 import { v2 as cloudinary } from 'cloudinary';
+
+// Verify an admin JWT (passed via form data as `adminToken`)
+const verifyAdminToken = (token) => {
+  if (!token) {
+    return { success: false, message: 'Admin token required' };
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.exp < Date.now() / 1000) {
+      return { success: false, message: 'Token expired' };
+    }
+
+    if (!decoded.isAdmin) {
+      return { success: false, message: 'Insufficient permissions' };
+    }
+
+    return { success: true, user: decoded };
+  } catch (jwtError) {
+    return { success: false, message: 'Invalid token' };
+  }
+};
 
 // Configure Cloudinary
 cloudinary.config({
@@ -19,13 +44,11 @@ export async function POST(request) {
     const file = formData.get('resume');
     const adminToken = formData.get('adminToken');
 
-    // Verify admin token
-    if (!adminToken) {
-      return NextResponse.json({ error: 'Admin token required' }, { status: 401 });
+    // Verify admin token (proper JWT verification)
+    const authResult = verifyAdminToken(adminToken);
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.message }, { status: 401 });
     }
-
-    // Verify JWT token (you can add proper JWT verification here)
-    // For now, we'll just check if it exists
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
@@ -53,6 +76,8 @@ export async function POST(request) {
 
     // Store resume info in database (optional)
     // You can create a resume collection to track uploads
+
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,

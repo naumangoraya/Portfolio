@@ -1,6 +1,35 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Service from '../../../../lib/models/Service';
+import jwt from 'jsonwebtoken';
+
+// Middleware to verify admin token
+const verifyAdmin = (request) => {
+  const authHeader = request.headers.get('authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { success: false, message: 'No token provided' };
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.exp < Date.now() / 1000) {
+      return { success: false, message: 'Token expired' };
+    }
+
+    if (!decoded.isAdmin) {
+      return { success: false, message: 'Insufficient permissions' };
+    }
+
+    return { success: true, user: decoded };
+  } catch (jwtError) {
+    return { success: false, message: 'Invalid token' };
+  }
+};
 
 // GET single service by ID
 export async function GET(request, { params }) {
@@ -29,8 +58,16 @@ export async function GET(request, { params }) {
 // PUT update service by ID
 export async function PUT(request, { params }) {
   try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
     await dbConnect();
-    
+
     const serviceData = await request.json();
     
     // No validation needed since fields are optional
@@ -47,9 +84,11 @@ export async function PUT(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      service: updatedService 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      service: updatedService
     });
   } catch (error) {
     console.error('Error updating service:', error);
@@ -63,8 +102,16 @@ export async function PUT(request, { params }) {
 // DELETE service by ID
 export async function DELETE(request, { params }) {
   try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
     await dbConnect();
-    
+
     const deletedService = await Service.findByIdAndDelete(params.id);
     
     if (!deletedService) {
@@ -74,9 +121,11 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Service deleted successfully' 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Service deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting service:', error);

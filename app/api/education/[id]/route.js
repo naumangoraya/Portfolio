@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Education from '../../../../lib/models/Education';
 import { verifyAdmin } from '../../../../lib/auth';
@@ -31,7 +32,9 @@ export async function PUT(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       message: 'Education entry updated successfully',
       education: updatedEducation
     });
@@ -67,7 +70,9 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       message: 'Education entry deleted successfully'
     });
   } catch (error) {

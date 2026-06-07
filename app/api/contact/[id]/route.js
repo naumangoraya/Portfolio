@@ -1,12 +1,49 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Contact from '../../../../lib/models/Contact';
+import jwt from 'jsonwebtoken';
 
-// GET single contact by ID
+// Middleware to verify admin token
+const verifyAdmin = (request) => {
+  const authHeader = request.headers.get('authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { success: false, message: 'No token provided' };
+  }
+
+  const token = authHeader.substring(7);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.exp < Date.now() / 1000) {
+      return { success: false, message: 'Token expired' };
+    }
+
+    if (!decoded.isAdmin) {
+      return { success: false, message: 'Insufficient permissions' };
+    }
+
+    return { success: true, user: decoded };
+  } catch (jwtError) {
+    return { success: false, message: 'Invalid token' };
+  }
+};
+
+// GET single contact by ID (admin only — contact records may hold private data)
 export async function GET(request, { params }) {
   try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
     await dbConnect();
-    
+
     const contact = await Contact.findById(params.id);
     
     if (!contact) {
@@ -29,8 +66,16 @@ export async function GET(request, { params }) {
 // PUT update contact by ID
 export async function PUT(request, { params }) {
   try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
     await dbConnect();
-    
+
     const contactData = await request.json();
     
     // Validate required fields
@@ -54,9 +99,11 @@ export async function PUT(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      contact: updatedContact 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      contact: updatedContact
     });
   } catch (error) {
     console.error('Error updating contact:', error);
@@ -70,8 +117,16 @@ export async function PUT(request, { params }) {
 // DELETE contact by ID
 export async function DELETE(request, { params }) {
   try {
+    const authResult = verifyAdmin(request);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: 401 }
+      );
+    }
+
     await dbConnect();
-    
+
     const deletedContact = await Contact.findByIdAndDelete(params.id);
     
     if (!deletedContact) {
@@ -81,9 +136,11 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Contact deleted successfully' 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Contact deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting contact:', error);

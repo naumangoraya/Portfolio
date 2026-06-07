@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import Hero from '../../../lib/models/Hero';
 import jwt from 'jsonwebtoken';
@@ -195,12 +196,12 @@ export async function PUT(request) {
       }
     }
     
-    console.log('Final hero data:', hero);
-    
-    return NextResponse.json({ 
-      success: true, 
+    revalidatePath('/'); // refresh the cached homepage with the new content
+
+    return NextResponse.json({
+      success: true,
       hero,
-      message: 'Hero section updated successfully' 
+      message: 'Hero section updated successfully'
     });
   } catch (error) {
     console.error('Error updating hero:', error);

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import Job from '../../../lib/models/Job';
 import jwt from 'jsonwebtoken';
@@ -75,11 +76,13 @@ export async function POST(request) {
     });
     
     await job.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       job,
-      message: 'Job created successfully' 
+      message: 'Job created successfully'
     });
   } catch (error) {
     console.error('Error creating job:', error);
@@ -126,10 +129,12 @@ export async function PUT(request) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       job,
-      message: 'Job updated successfully' 
+      message: 'Job updated successfully'
     });
   } catch (error) {
     console.error('Error updating job:', error);
@@ -172,9 +177,11 @@ export async function DELETE(request) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       success: true,
-      message: 'Job deleted successfully' 
+      message: 'Job deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting job:', error);

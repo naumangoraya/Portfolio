@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import Education from '../../../lib/models/Education';
 import jwt from 'jsonwebtoken';
@@ -74,11 +75,13 @@ export async function POST(request) {
     });
     
     await education.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       education,
-      message: 'Education record created successfully' 
+      message: 'Education record created successfully'
     });
   } catch (error) {
     console.error('Error creating education:', error);
@@ -125,10 +128,12 @@ export async function PUT(request) {
       );
     }
     
-    return NextResponse.json({ 
-      success: true, 
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       education,
-      message: 'Education record updated successfully' 
+      message: 'Education record updated successfully'
     });
   } catch (error) {
     console.error('Error updating education:', error);
@@ -171,9 +176,11 @@ export async function DELETE(request) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       success: true,
-      message: 'Education record deleted successfully' 
+      message: 'Education record deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting education:', error);

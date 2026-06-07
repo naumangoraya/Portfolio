@@ -4,8 +4,16 @@ import { Resend } from 'resend';
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Escape user-supplied text before embedding it in email HTML (prevents
+// markup/HTML injection into the notification email we receive).
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // Simple in-memory rate limiting (for production, consider using Redis)
 const rateLimitMap = new Map();
@@ -49,7 +57,16 @@ export async function POST(request) {
       );
     }
 
-    const { name, email, message } = await request.json();
+    const { name, email, message, website } = await request.json();
+
+    // Honeypot: `website` is a hidden field real users never see/fill.
+    // If it's populated, silently accept (so bots don't learn) but drop it.
+    if (website) {
+      return NextResponse.json({
+        success: true,
+        message: 'Thank you! Your message has been received successfully.',
+      });
+    }
 
     // Validate required fields
     if (!name || !email || !message) {
@@ -76,20 +93,13 @@ export async function POST(request) {
       );
     }
 
-    // Check for suspicious patterns (basic spam detection)
-    const suspiciousPatterns = [
-      /http[s]?:\/\/[^\s]+/g, // URLs
-      /[A-Z]{10,}/g, // ALL CAPS words
-      /[!]{3,}/g, // Multiple exclamation marks
-    ];
-    
-    const hasSuspiciousContent = suspiciousPatterns.some(pattern => 
-      pattern.test(message)
-    );
-    
-    if (hasSuspiciousContent) {
+    // Lightweight spam detection — only block on clearly abusive content.
+    // (The honeypot above handles most bots; we no longer reject legitimate
+    // messages just for containing a link, an acronym, or "!!!".)
+    const linkCount = (message.match(/https?:\/\/[^\s]+/gi) || []).length;
+    if (linkCount > 5) {
       return NextResponse.json(
-        { error: 'Message contains suspicious content. Please review and try again.' },
+        { error: 'Message contains too many links. Please review and try again.' },
         { status: 400 }
       );
     }
@@ -111,13 +121,9 @@ export async function POST(request) {
       );
     }
 
-    console.log('Environment variables loaded:', {
-      hasResendKey: !!process.env.RESEND_API_KEY,
-      notificationEmail: process.env.NOTIFICATION_EMAIL,
-      resendKeyPrefix: process.env.RESEND_API_KEY?.substring(0, 3)
-    });
-
-    console.log('Attempting to send notification email to:', process.env.NOTIFICATION_EMAIL);
+    // Initialize Resend lazily (after confirming the key exists) so the
+    // module can be imported at build time without the env var present.
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Email content for you (the recipient)
     const notificationEmail = {
@@ -130,18 +136,18 @@ export async function POST(request) {
           
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
             <h3 style="color: #333; margin-top: 0;">Contact Details:</h3>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+            <p><strong>Email:</strong> ${escapeHtml(email)}</p>
             <p><strong>Message:</strong></p>
             <div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #64ffda;">
-              ${message.replace(/\n/g, '<br>')}
+              ${escapeHtml(message).replace(/\n/g, '<br>')}
             </div>
           </div>
           
           <div style="background: #e9ecef; padding: 15px; border-radius: 5px; font-size: 14px; color: #6c757d;">
             <p style="margin: 0;"><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
             <p style="margin: 5px 0 0 0;"><strong>IP Address:</strong> ${clientIP}</p>
-            <p style="margin: 5px 0 0 0;"><strong>User Agent:</strong> ${request.headers.get('user-agent') || 'Unknown'}</p>
+            <p style="margin: 5px 0 0 0;"><strong>User Agent:</strong> ${escapeHtml(request.headers.get('user-agent') || 'Unknown')}</p>
           </div>
         </div>
       `,
@@ -149,7 +155,6 @@ export async function POST(request) {
 
     // Send the notification email to you
     const notificationResult = await resend.emails.send(notificationEmail);
-    console.log('Notification email result:', notificationResult);
 
     return NextResponse.json({ 
       success: true, 

@@ -470,7 +470,8 @@ const Contact = ({ data }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    message: ''
+    message: '',
+    website: '' // honeypot — real users leave this empty; bots fill it
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -554,9 +555,9 @@ const Contact = ({ data }) => {
     return fields;
   };
 
-  // Dummy data to display when no data comes from database
+  // Placeholder data shown only when the DB has no contact document.
   const dummyContactData = {
-    email: 'nauman.noor@gmail.com',
+    email: 'naumanjaat@gmail.com',
     phone: '+1 (555) 123-4567',
     address: 'Lahore, Pakistan',
 
@@ -960,7 +961,7 @@ const Contact = ({ data }) => {
 
       if (response.ok) {
         // Reset form on success
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ name: '', email: '', message: '', website: '' });
         toast.success(result.message || 'Message sent successfully! Check your email for confirmation.');
       } else {
         // Handle API errors
@@ -1392,8 +1393,22 @@ const Contact = ({ data }) => {
                 />
               </div>
 
-              <button 
-                type="submit" 
+              {/* Honeypot field — hidden from users, bots tend to fill it */}
+              <div style={{ position: 'absolute', left: '-9999px', top: 'auto', height: 0, width: 0, overflow: 'hidden' }} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  type="text"
+                  id="website"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
+              <button
+                type="submit"
                 className="submit-button"
                 disabled={isSubmitting}
               >

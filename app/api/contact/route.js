@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import Contact from '../../../lib/models/Contact';
 import jwt from 'jsonwebtoken';
@@ -77,11 +78,13 @@ export async function POST(request) {
     });
     
     await contact.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       contact,
-      message: 'Contact section created successfully' 
+      message: 'Contact section created successfully'
     });
   } catch (error) {
     console.error('Error creating contact:', error);
@@ -124,11 +127,13 @@ export async function PUT(request) {
     }
     
     await contact.save();
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    revalidatePath('/');
+
+    return NextResponse.json({
+      success: true,
       contact,
-      message: 'Contact section updated successfully' 
+      message: 'Contact section updated successfully'
     });
   } catch (error) {
     console.error('Error updating contact:', error);
@@ -171,9 +176,11 @@ export async function DELETE(request) {
       );
     }
     
-    return NextResponse.json({ 
+    revalidatePath('/');
+
+    return NextResponse.json({
       success: true,
-      message: 'Contact section deleted successfully' 
+      message: 'Contact section deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting contact:', error);

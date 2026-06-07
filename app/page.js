@@ -12,13 +12,15 @@ import Project from '../lib/models/Project';
 import ContactModel from '../lib/models/Contact';
 import EducationModel from '../lib/models/Education';
 
-// Force dynamic rendering to avoid build-time data fetching issues
-export const dynamic = 'force-dynamic';
-export const revalidate = 0; // Always revalidate
-export const fetchCache = 'force-no-store'; // Never cache
+// ISR: cache the rendered page and revalidate at most every 60s. Admin save
+// routes call revalidatePath('/') so edits appear immediately rather than
+// waiting for the window. This avoids hitting MongoDB on every visitor request.
+export const revalidate = 60;
 export const preferredRegion = 'auto'; // Use closest region
 export const maxDuration = 30; // Extend function timeout
 export const runtime = 'nodejs'; // Ensure Node.js runtime for Mongoose
+
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Helper function to serialize Mongoose objects to plain JavaScript objects
 function serializeData(data) {
@@ -52,8 +54,8 @@ function serializeData(data) {
 // Fetch data directly from the database (no HTTP fetch)
 async function getData() {
   try {
-    console.log('🔍 Starting data fetch from database...');
-    
+    if (isDev) console.log('🔍 Starting data fetch from database...');
+
     // Connect to database
     await dbConnect();
     
@@ -68,16 +70,6 @@ async function getData() {
       EducationModel.find({ isActive: true }).sort({ order: 1, startDate: -1 }).lean()
     ]);
 
-    console.log('Raw DB responses:', {
-      heroData: { hero: heroData },
-      aboutData: { about: aboutData },
-      jobsData: { jobs: jobsData },
-      servicesData: { services: servicesData },
-      projectsData: { projects: projectsData },
-      contactData: { contact: contactData },
-      educationData: { education: educationData }
-    });
-
     // Transform and serialize data
     const transformedData = {
       transformedHeroData: serializeData(heroData),
@@ -89,8 +81,6 @@ async function getData() {
       transformedEducationData: serializeData(educationData)
     };
 
-    console.log('Transformed data:', transformedData);
-    
     return transformedData;
   } catch (error) {
     console.error('❌ Error fetching data:', error);
@@ -111,7 +101,7 @@ export default async function HomePage() {
       }
       retryCount++;
       if (retryCount < 3) {
-        console.log(`🔄 Retry ${retryCount}/3 - waiting 1 second...`);
+        if (isDev) console.log(`🔄 Retry ${retryCount}/3 - waiting 1 second...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     } catch (error) {
@@ -137,18 +127,7 @@ export default async function HomePage() {
   }
   
   const { transformedHeroData, transformedAboutData, transformedJobsData, transformedServicesData, transformedProjectsData, transformedContactData, transformedEducationData } = data;
-  
-  // Debug: Log the raw DB responses
-  console.log('Raw DB responses:', {
-    transformedHeroData,
-    transformedAboutData,
-    transformedJobsData,
-    transformedServicesData,
-    transformedProjectsData,
-    transformedContactData,
-    transformedEducationData
-  });
-  
+
   // Transform data to match component expectations
   const transformedHeroDataFinal = transformedHeroData || null;
   const transformedAboutDataFinal = transformedAboutData || null;
@@ -157,16 +136,6 @@ export default async function HomePage() {
   const transformedProjectsDataFinal = Array.isArray(transformedProjectsData) ? transformedProjectsData : [];
   const transformedContactDataFinal = transformedContactData || null;
   const transformedEducationDataFinal = Array.isArray(transformedEducationData) ? transformedEducationData : [];
-  
-  console.log('Transformed data:', {
-    transformedHeroDataFinal,
-    transformedAboutDataFinal,
-    transformedJobsDataFinal,
-    transformedServicesDataFinal,
-    transformedProjectsDataFinal,
-    transformedContactDataFinal,
-    transformedEducationDataFinal
-  });
   
   return (
     <Layout 
@@ -191,16 +160,13 @@ export default async function HomePage() {
 
 export async function generateMetadata() {
   try {
-    console.log('🔍 Generating metadata...');
-    
     // Connect to database
     await dbConnect();
-    
+
     // Fetch hero data directly for metadata
     const heroData = await Hero.findOne({ isActive: true }).lean();
-    
+
     if (!heroData) {
-      console.log('⚠️ No hero data found, using fallback metadata');
       return {
         title: 'Portfolio',
         description: 'Welcome to my portfolio',
@@ -209,9 +175,7 @@ export async function generateMetadata() {
 
     // Serialize the data
     const serializedHero = serializeData(heroData);
-    
-    console.log('🔍 Hero data for metadata:', serializedHero);
-    
+
     return {
       title: `${serializedHero.name || serializedHero.title || 'Portfolio'} - ${serializedHero.tagline || serializedHero.subtitle || 'Developer'}`,
       description: serializedHero.description || serializedHero.longDescription || 'Welcome to my portfolio',
