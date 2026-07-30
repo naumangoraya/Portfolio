@@ -107,7 +107,9 @@ const AdminLogin = ({ onLogin, onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('adminToken', data.token);
+        // Token persistence is owned by AuthContext.login() so that the admin
+        // state actually flips; writing localStorage here left isAdmin false
+        // until a manual full reload.
         onLogin(data.token);
       } else {
         const errorData = await response.json();
@@ -125,25 +127,33 @@ const AdminLogin = ({ onLogin, onClose }) => {
       <StyledLoginForm onClick={(e) => e.stopPropagation()}>
         <h2>Admin Login</h2>
         
-        {error && <div className="error-message">{error}</div>}
-        
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
               type="text"
               id="username"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

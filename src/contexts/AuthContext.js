@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -48,29 +48,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (token) => {
+  const login = useCallback((token) => {
     localStorage.setItem('adminToken', token);
     setIsAdmin(true);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('adminToken');
     setIsAdmin(false);
     setEditMode(false);
-  };
+  }, []);
 
-  const toggleEditMode = () => {
-    setEditMode(!editMode);
-  };
+  const toggleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+  }, []);
 
-  const value = {
-    isAdmin,
-    isLoading,
-    editMode,
-    login,
-    logout,
-    toggleEditMode,
-  };
+  const value = useMemo(
+    () => ({ isAdmin, isLoading, editMode, login, logout, toggleEditMode }),
+    [isAdmin, isLoading, editMode, login, logout, toggleEditMode]
+  );
 
   return (
     <AuthContext.Provider value={value}>

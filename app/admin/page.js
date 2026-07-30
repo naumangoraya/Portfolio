@@ -41,7 +41,7 @@ const StyledSubtitle = styled.p`
 `;
 
 const AdminPage = () => {
-  const { isAdmin, isLoading } = useAuth();
+  const { isAdmin, isLoading, login } = useAuth();
   const router = useRouter();
 
   // Redirect to home if already logged in
@@ -52,7 +52,10 @@ const AdminPage = () => {
   }, [isAdmin, isLoading, router]);
 
   const handleLogin = (token) => {
-    // After successful login, redirect to home page
+    // Persist the token AND flip isAdmin before navigating; router.push() is a
+    // client-side nav that does not remount AuthProvider, so without this the
+    // admin UI stayed hidden until a manual reload.
+    login(token);
     router.push('/');
   };
 
