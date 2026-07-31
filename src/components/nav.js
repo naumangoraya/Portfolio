@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import styled, { css } from 'styled-components';
 import { navLinks } from '@config';
 import { loaderDelay } from '@utils';
@@ -273,33 +274,33 @@ const Nav = ({ isHome }) => {
                   {isMounted &&
                     navLinks &&
                     navLinks.map(({ url, name }, i) => (
-                      <CSSTransition key={i} classNames={fadeDownClass} timeout={timeout}>
+                      <FadeIn key={i} classNames={fadeDownClass} timeout={timeout}>
                         <li key={i} style={{ transitionDelay: `${isHome ? i * 100 : 0}ms` }}>
                           <Link href={url} onClick={e => handleHashClick(e, url)}>
                             {name}
                           </Link>
                         </li>
-                      </CSSTransition>
+                      </FadeIn>
                     ))}
                 </TransitionGroup>
               </ol>
 
               <TransitionGroup component={null}>
                 {isMounted && (
-                  <CSSTransition classNames={fadeDownClass} timeout={timeout}>
+                  <FadeIn classNames={fadeDownClass} timeout={timeout}>
                     <div style={{ transitionDelay: `${isHome ? navLinks.length * 100 : 0}ms` }}>
                       {ResumeLink}
                     </div>
-                  </CSSTransition>
+                  </FadeIn>
                 )}
               </TransitionGroup>
             </StyledLinks>
 
             <TransitionGroup component={null}>
               {isMounted && (
-                <CSSTransition classNames={fadeClass} timeout={timeout}>
+                <FadeIn classNames={fadeClass} timeout={timeout}>
                   <Menu />
-                </CSSTransition>
+                </FadeIn>
               )}
             </TransitionGroup>
           </>

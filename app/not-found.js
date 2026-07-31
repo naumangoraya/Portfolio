@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import styled from 'styled-components';
 import { navDelay } from '../src/utils';
 import { Layout } from '../src/components';
@@ -58,9 +59,9 @@ export default function NotFound() {
       ) : (
         <TransitionGroup component={null}>
           {isMounted && (
-            <CSSTransition timeout={500} classNames="fadeup">
+            <FadeIn timeout={500} classNames="fadeup">
               {content}
-            </CSSTransition>
+            </FadeIn>
           )}
         </TransitionGroup>
       )}

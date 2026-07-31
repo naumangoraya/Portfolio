@@ -156,7 +156,9 @@ const StyledSidebar = styled.aside`
   }
 `;
 
-const Menu = () => {
+// forwardRef so <FadeIn> can attach its nodeRef here. Without a ref target,
+// react-transition-group falls back to findDOMNode, removed in React 19.
+const Menu = React.forwardRef((props, ref) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -250,7 +252,7 @@ const Menu = () => {
   useOnClickOutside(wrapperRef, () => setMenuOpen(false));
 
   return (
-    <StyledMenu>
+    <StyledMenu ref={ref}>
       <div ref={wrapperRef}>
         <StyledHamburgerButton
           onClick={toggleMenu}
@@ -285,6 +287,8 @@ const Menu = () => {
       </div>
     </StyledMenu>
   );
-};
+});
+
+Menu.displayName = 'Menu';
 
 export default Menu;

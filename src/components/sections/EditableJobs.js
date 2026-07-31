@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { CSSTransition } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import styled from 'styled-components';
 import { srConfig } from '@config';
 import { KEY_CODES } from '@utils';
@@ -207,7 +207,7 @@ const StyledTabButton = styled.button`
   padding: 0 20px 2px;
   border-left: 2px solid var(--lightest-navy);
   background-color: transparent;
-  color: ${({ isActive }) => (isActive ? 'var(--green)' : 'var(--slate)')};
+  color: ${({ $isActive }) => ($isActive ? 'var(--green)' : 'var(--slate)')};
   font-family: var(--font-mono);
   font-size: var(--fz-xs);
   text-align: left;
@@ -344,7 +344,7 @@ const StyledHighlight = styled.div`
   height: var(--tab-height);
   border-radius: 4px;
   background: var(--green);
-  transform: translateY(calc(${({ activeTabId }) => activeTabId} * var(--tab-height)));
+  transform: translateY(calc(${({ $activeTabId }) => $activeTabId} * var(--tab-height)));
   transition: transform 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
   transition-delay: 0.1s;
 
@@ -355,7 +355,7 @@ const StyledHighlight = styled.div`
     max-width: var(--tab-width);
     height: 2px;
     margin-left: 50px;
-    transform: translateX(calc(${({ activeTabId }) => activeTabId} * var(--tab-width)));
+    transform: translateX(calc(${({ $activeTabId }) => $activeTabId} * var(--tab-width)));
   }
   @media (max-width: 480px) {
     margin-left: 25px;
@@ -658,7 +658,7 @@ const EditableJobs = ({ data = [] }) => {
               return (
                 <StyledTabButton
                   key={job._id || i}
-                  isActive={activeTabId === i}
+                  $isActive={activeTabId === i}
                   onClick={() => setActiveTabId(i)}
                   ref={el => (tabs.current[i] = el)}
                   id={`tab-${i}`}
@@ -671,7 +671,7 @@ const EditableJobs = ({ data = [] }) => {
                 </StyledTabButton>
               );
             })}
-            <StyledHighlight activeTabId={activeTabId} />
+            <StyledHighlight $activeTabId={activeTabId} />
           </StyledTabList>
 
           <StyledTabPanels>
@@ -679,12 +679,7 @@ const EditableJobs = ({ data = [] }) => {
               const { title, company, location, dates, description, tech } = job;
 
               return (
-                <CSSTransition
-                  key={job._id || i}
-                  in={activeTabId === i}
-                  timeout={250}
-                  classNames="fade"
-                >
+                <FadeIn key={job._id || i} in={activeTabId === i} timeout={250} classNames="fade">
                   <StyledTabPanel
                     id={`panel-${i}`}
                     role="tabpanel"
@@ -728,7 +723,7 @@ const EditableJobs = ({ data = [] }) => {
                       </div>
                     )}
                   </StyledTabPanel>
-                </CSSTransition>
+                </FadeIn>
               );
             })}
           </StyledTabPanels>

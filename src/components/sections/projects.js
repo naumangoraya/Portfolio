@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Link from 'next/link';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import { Icon } from '@components/icons';
 import sr from '@utils/sr';
 import { srConfig } from '@config';
@@ -849,7 +850,7 @@ const Projects = ({ data = [] }) => {
               <TransitionGroup component={null}>
                 {projectsToShow &&
                   projectsToShow.map((project, i) => (
-                    <CSSTransition
+                    <FadeIn
                       key={project._id || i}
                       classNames="fadeup"
                       timeout={i >= GRID_LIMIT ? (i - GRID_LIMIT) * 300 : 300}
@@ -864,7 +865,7 @@ const Projects = ({ data = [] }) => {
                       >
                         {projectInner(project)}
                       </StyledProject>
-                    </CSSTransition>
+                    </FadeIn>
                   ))}
               </TransitionGroup>
             )
