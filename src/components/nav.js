@@ -36,7 +36,7 @@ const StyledHeader = styled.header`
 
   @media (prefers-reduced-motion: no-preference) {
     ${props =>
-    props.$scrollDirection === 'up' &&
+      props.$scrollDirection === 'up' &&
       !props.$scrolledToTop &&
       css`
         height: var(--nav-scroll-height);
@@ -47,7 +47,7 @@ const StyledHeader = styled.header`
       `};
 
     ${props =>
-    props.$scrollDirection === 'down' &&
+      props.$scrollDirection === 'down' &&
       !props.$scrolledToTop &&
       css`
         height: var(--nav-scroll-height);
@@ -171,9 +171,9 @@ const Nav = ({ isHome }) => {
       const targetId = url.substring(2); // Remove '/#' to get the ID
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
-        targetElement.scrollIntoView({ 
+        targetElement.scrollIntoView({
           behavior: prefersReducedMotion ? 'auto' : 'smooth',
-          block: 'start'
+          block: 'start',
         });
       }
     }
@@ -254,7 +254,9 @@ const Nav = ({ isHome }) => {
                 {navLinks &&
                   navLinks.map(({ url, name }, i) => (
                     <li key={i}>
-                      <Link href={url} onClick={(e) => handleHashClick(e, url)}>{name}</Link>
+                      <Link href={url} onClick={e => handleHashClick(e, url)}>
+                        {name}
+                      </Link>
                     </li>
                   ))}
               </ol>
@@ -273,7 +275,9 @@ const Nav = ({ isHome }) => {
                     navLinks.map(({ url, name }, i) => (
                       <CSSTransition key={i} classNames={fadeDownClass} timeout={timeout}>
                         <li key={i} style={{ transitionDelay: `${isHome ? i * 100 : 0}ms` }}>
-                          <Link href={url} onClick={(e) => handleHashClick(e, url)}>{name}</Link>
+                          <Link href={url} onClick={e => handleHashClick(e, url)}>
+                            {name}
+                          </Link>
                         </li>
                       </CSSTransition>
                     ))}

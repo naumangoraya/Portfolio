@@ -12,7 +12,7 @@ export const useProjects = (initialData = []) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/projects');
       if (response.ok) {
         const data = await response.json();
@@ -48,7 +48,7 @@ export const useProjects = (initialData = []) => {
 
   // Get featured projects
   const featuredProjects = safeProjects.filter(project => project.featured);
-  
+
   // Get regular projects
   const regularProjects = safeProjects.filter(project => !project.featured);
 
@@ -59,6 +59,6 @@ export const useProjects = (initialData = []) => {
     isLoading,
     error,
     refreshData,
-    setProjects
+    setProjects,
   };
 };

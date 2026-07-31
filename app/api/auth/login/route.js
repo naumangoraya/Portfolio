@@ -54,7 +54,8 @@ export async function POST(request) {
     // Always run a bcrypt comparison so a missing account and a wrong password
     // take comparable time (the old code returned early, leaking which emails
     // exist via response timing).
-    const hash = user?.password || '$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinv';
+    const hash =
+      user?.password || '$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinv';
     const passwordMatches = await bcrypt.compare(password, hash);
 
     if (!user || !passwordMatches) {

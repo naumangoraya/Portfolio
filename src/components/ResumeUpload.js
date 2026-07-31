@@ -51,7 +51,7 @@ const ResumeUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  const handleFileSelect = async (event) => {
+  const handleFileSelect = async event => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -73,7 +73,7 @@ const ResumeUpload = () => {
     event.target.value = '';
   };
 
-  const uploadResume = async (file) => {
+  const uploadResume = async file => {
     setIsUploading(true);
     setUploadSuccess(false);
 
@@ -129,7 +129,7 @@ const ResumeUpload = () => {
       >
         {isUploading ? 'Uploading...' : uploadSuccess ? '✓ Uploaded' : 'Upload Resume'}
       </button>
-      
+
       <input
         ref={inputRef}
         id="resume-file-input"

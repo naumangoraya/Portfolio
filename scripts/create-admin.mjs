@@ -1,16 +1,15 @@
 // Creates (or updates) the admin user in MongoDB using the credentials in
 // .env.local (ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME).
 //
-// Run with:  node scripts/create-admin.mjs
+// Run with:  npm run seed:admin
+//
+// Env is loaded by Node's built-in --env-file (see the seed:admin script), so
+// this no longer needs the dotenv dependency.
 //
 // The User model hashes the password via a pre-save hook, so we must use
 // .save() (not updateOne) for the hashing to run.
 
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-
-// Next.js uses .env.local; load it explicitly (dotenv defaults to .env).
-dotenv.config({ path: '.env.local' });
 
 const { MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = process.env;
 
@@ -81,7 +80,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error('❌ Failed to create admin user:', err.message);
   process.exit(1);
 });

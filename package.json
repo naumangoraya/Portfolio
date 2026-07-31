@@ -1,11 +1,12 @@
 {
-  "name": "v4",
-  "description": "Personal Website V4 - Dynamic Portfolio with Admin Panel",
-  "version": "1.0.0",
+  "name": "portfolio",
+  "description": "Dynamic portfolio site with a database-driven admin panel",
+  "version": "2.0.0",
+  "private": true,
   "author": "Nauman Noor <nauman.noor@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/naumannoor/v4"
+    "url": "https://github.com/naumangoraya/Portfolio"
   },
   "keywords": [
     "nextjs",
@@ -14,20 +15,23 @@
     "mongodb"
   ],
   "license": "MIT",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
-    "seed:admin": "node scripts/create-admin.mjs"
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "seed:admin": "node --env-file=.env.local scripts/create-admin.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.7.0",
-    "dotenv": "^17.2.1",
     "jsonwebtoken": "^9.0.2",
-    "lodash": "^4.17.21",
-    "mongodb": "^6.3.0",
     "mongoose": "^8.0.3",
     "next": "^14.0.0",
     "prop-types": "^15.8.1",
@@ -40,10 +44,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^20.10.4",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.0.0"
+    "eslint-config-next": "^14.0.0",
+    "prettier": "^3.9.6"
   }
 }

@@ -92,7 +92,8 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea {
+      input,
+      textarea {
         width: 100%;
         padding: 10px;
         background: var(--light-navy);
@@ -117,7 +118,7 @@ const StyledModal = styled.div`
         align-items: center;
         gap: 10px;
 
-        input[type="checkbox"] {
+        input[type='checkbox'] {
           width: auto;
         }
       }
@@ -277,19 +278,19 @@ const StyledTabPanel = styled.div`
 
   .tech-stack {
     margin-top: 20px;
-    
+
     strong {
       color: var(--lightest-slate);
       font-size: var(--fz-sm);
       margin-bottom: 10px;
       display: block;
     }
-    
+
     .tech-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      
+
       .tech-tag {
         background: var(--navy);
         color: var(--green);
@@ -307,7 +308,7 @@ const StyledTabPanel = styled.div`
     border-top: 1px solid var(--lightest-navy);
     display: flex;
     gap: 10px;
-    
+
     button {
       background: var(--green);
       color: var(--navy);
@@ -317,15 +318,15 @@ const StyledTabPanel = styled.div`
       font-size: var(--fz-sm);
       cursor: pointer;
       font-weight: 600;
-      
+
       &:hover {
         background: var(--light-green);
       }
-      
+
       &.delete {
         background: #ff6b6b;
         color: white;
-        
+
         &:hover {
           background: #ff5252;
         }
@@ -382,7 +383,7 @@ const EditableJobs = ({ data = [] }) => {
     companyWebsite: '',
     order: 0,
     isActive: true,
-    type: 'Full-time'
+    type: 'Full-time',
   });
 
   const tabs = useRef([]);
@@ -394,31 +395,34 @@ const EditableJobs = ({ data = [] }) => {
   const dummyJobs = [
     {
       _id: 'dummy1',
-      company: "TechCorp Solutions",
-      title: "Senior Full Stack Developer",
-      dates: "Jan 2023 - Present",
-      location: "San Francisco, CA",
-      description: "Leading development of enterprise web applications using React, Node.js, and MongoDB. Mentoring junior developers and implementing best practices for code quality and performance.",
-      tech: ["React", "Node.js", "MongoDB", "TypeScript", "AWS"]
+      company: 'TechCorp Solutions',
+      title: 'Senior Full Stack Developer',
+      dates: 'Jan 2023 - Present',
+      location: 'San Francisco, CA',
+      description:
+        'Leading development of enterprise web applications using React, Node.js, and MongoDB. Mentoring junior developers and implementing best practices for code quality and performance.',
+      tech: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'AWS'],
     },
     {
       _id: 'dummy2',
-      company: "InnovateLabs",
-      title: "Frontend Developer",
-      dates: "Mar 2021 - Dec 2022",
-      location: "New York, NY",
-      description: "Built responsive user interfaces and implemented modern frontend architectures. Collaborated with design and backend teams to deliver seamless user experiences.",
-      tech: ["React", "Vue.js", "Sass", "Webpack", "Jest"]
+      company: 'InnovateLabs',
+      title: 'Frontend Developer',
+      dates: 'Mar 2021 - Dec 2022',
+      location: 'New York, NY',
+      description:
+        'Built responsive user interfaces and implemented modern frontend architectures. Collaborated with design and backend teams to deliver seamless user experiences.',
+      tech: ['React', 'Vue.js', 'Sass', 'Webpack', 'Jest'],
     },
     {
       _id: 'dummy3',
-      company: "StartupHub",
-      title: "Software Engineer",
-      dates: "Jun 2020 - Feb 2021",
-      location: "Austin, TX",
-      description: "Developed features for a SaaS platform, focusing on user authentication, payment processing, and real-time notifications.",
-      tech: ["Python", "Django", "PostgreSQL", "Redis", "Docker"]
-    }
+      company: 'StartupHub',
+      title: 'Software Engineer',
+      dates: 'Jun 2020 - Feb 2021',
+      location: 'Austin, TX',
+      description:
+        'Developed features for a SaaS platform, focusing on user authentication, payment processing, and real-time notifications.',
+      tech: ['Python', 'Django', 'PostgreSQL', 'Redis', 'Docker'],
+    },
   ];
 
   // Use dummy data if no real data is provided, otherwise use jobData state
@@ -482,22 +486,31 @@ const EditableJobs = ({ data = [] }) => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     const jobPayload = {
       ...formData,
-      tech: formData.tech.split(',').map(t => t.trim()).filter(t => t),
-      achievements: formData.achievements.split(',').map(a => a.trim()).filter(a => a),
-      responsibilities: formData.responsibilities.split(',').map(r => r.trim()).filter(r => r)
+      tech: formData.tech
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t),
+      achievements: formData.achievements
+        .split(',')
+        .map(a => a.trim())
+        .filter(a => a),
+      responsibilities: formData.responsibilities
+        .split(',')
+        .map(r => r.trim())
+        .filter(r => r),
     };
 
     try {
@@ -507,14 +520,14 @@ const EditableJobs = ({ data = [] }) => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
           },
           body: JSON.stringify(jobPayload),
         });
 
         if (response.ok) {
           const updatedJob = await response.json();
-          setJobData(prev => prev.map(j => j._id === editingJob._id ? updatedJob.job : j));
+          setJobData(prev => prev.map(j => (j._id === editingJob._id ? updatedJob.job : j)));
           toast.success('Job updated successfully!');
         } else {
           toast.error('Failed to update job');
@@ -525,7 +538,7 @@ const EditableJobs = ({ data = [] }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
           },
           body: JSON.stringify(jobPayload),
         });
@@ -548,7 +561,7 @@ const EditableJobs = ({ data = [] }) => {
     }
   };
 
-  const handleEdit = (job) => {
+  const handleEdit = job => {
     setEditingJob(job);
     setFormData({
       title: job.title || '',
@@ -565,12 +578,12 @@ const EditableJobs = ({ data = [] }) => {
       companyWebsite: job.companyWebsite || '',
       order: job.order || 0,
       isActive: job.isActive !== false,
-      type: job.type || 'Full-time'
+      type: job.type || 'Full-time',
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (jobId) => {
+  const handleDelete = async jobId => {
     if (!confirm('Are you sure you want to delete this job?')) {
       return;
     }
@@ -579,7 +592,7 @@ const EditableJobs = ({ data = [] }) => {
       const response = await fetch(`/api/jobs/${jobId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
       });
 
@@ -621,7 +634,7 @@ const EditableJobs = ({ data = [] }) => {
       companyWebsite: '',
       order: 0,
       isActive: true,
-      type: 'Full-time'
+      type: 'Full-time',
     });
   };
 
@@ -652,7 +665,8 @@ const EditableJobs = ({ data = [] }) => {
                   role="tab"
                   tabIndex={activeTabId === i ? '0' : '-1'}
                   aria-selected={activeTabId === i ? true : false}
-                  aria-controls={`panel-${i}`}>
+                  aria-controls={`panel-${i}`}
+                >
                   <span>{company}</span>
                 </StyledTabButton>
               );
@@ -665,21 +679,25 @@ const EditableJobs = ({ data = [] }) => {
               const { title, company, location, dates, description, tech } = job;
 
               return (
-                <CSSTransition key={job._id || i} in={activeTabId === i} timeout={250} classNames="fade">
+                <CSSTransition
+                  key={job._id || i}
+                  in={activeTabId === i}
+                  timeout={250}
+                  classNames="fade"
+                >
                   <StyledTabPanel
                     id={`panel-${i}`}
                     role="tabpanel"
                     tabIndex={activeTabId === i ? '0' : '-1'}
                     aria-labelledby={`tab-${i}`}
                     aria-hidden={activeTabId !== i}
-                    hidden={activeTabId !== i}>
+                    hidden={activeTabId !== i}
+                  >
                     <h3>
                       <span>{formatTextWithBackticks(title)}</span>
                       <span className="company">
                         &nbsp;@&nbsp;
-                        <span className="inline-link">
-                          {formatTextWithBackticks(company)}
-                        </span>
+                        <span className="inline-link">{formatTextWithBackticks(company)}</span>
                       </span>
                     </h3>
 
@@ -687,13 +705,15 @@ const EditableJobs = ({ data = [] }) => {
                     {location && <p className="location">📍 {location}</p>}
 
                     <div className="description">{formatTextWithBackticks(description)}</div>
-                    
+
                     {tech && tech.length > 0 && (
                       <div className="tech-stack">
                         <strong>Technologies:</strong>
                         <div className="tech-tags">
                           {tech.map((techItem, index) => (
-                            <span key={index} className="tech-tag">{techItem}</span>
+                            <span key={index} className="tech-tag">
+                              {techItem}
+                            </span>
                           ))}
                         </div>
                       </div>
@@ -702,7 +722,9 @@ const EditableJobs = ({ data = [] }) => {
                     {isAdmin && editMode && (
                       <div className="admin-job-controls">
                         <button onClick={() => handleEdit(job)}>Edit</button>
-                        <button className="delete" onClick={() => handleDelete(job._id)}>Delete</button>
+                        <button className="delete" onClick={() => handleDelete(job._id)}>
+                          Delete
+                        </button>
                       </div>
                     )}
                   </StyledTabPanel>
@@ -714,7 +736,7 @@ const EditableJobs = ({ data = [] }) => {
       </StyledJobsSection>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>{editingJob ? 'Edit Job' : 'Add New Job'}</h3>
             <form onSubmit={handleSubmit}>

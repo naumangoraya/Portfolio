@@ -22,23 +22,23 @@ const StyledLoginForm = styled.div`
   border-radius: 8px;
   border: 1px solid var(--green);
   min-width: 300px;
-  
+
   h2 {
     color: var(--lightest-slate);
     margin-bottom: 20px;
     text-align: center;
   }
-  
+
   .form-group {
     margin-bottom: 20px;
-    
+
     label {
       display: block;
       color: var(--light-slate);
       margin-bottom: 8px;
       font-size: var(--fz-sm);
     }
-    
+
     input {
       width: 100%;
       padding: 12px;
@@ -47,14 +47,14 @@ const StyledLoginForm = styled.div`
       border-radius: 4px;
       color: var(--lightest-slate);
       font-size: var(--fz-md);
-      
+
       &:focus {
         border-color: var(--green);
         outline: none;
       }
     }
   }
-  
+
   .login-button {
     width: 100%;
     padding: 12px;
@@ -66,17 +66,17 @@ const StyledLoginForm = styled.div`
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    
+
     &:hover {
       background: var(--light-green);
     }
-    
+
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
   }
-  
+
   .error-message {
     color: #ff6b6b;
     text-align: center;
@@ -91,7 +91,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -124,9 +124,9 @@ const AdminLogin = ({ onLogin, onClose }) => {
 
   return (
     <StyledLoginOverlay onClick={onClose}>
-      <StyledLoginForm onClick={(e) => e.stopPropagation()}>
+      <StyledLoginForm onClick={e => e.stopPropagation()}>
         <h2>Admin Login</h2>
-        
+
         {error && (
           <div className="error-message" role="alert">
             {error}
@@ -142,7 +142,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
               name="username"
               autoComplete="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={e => setUsername(e.target.value)}
               required
             />
           </div>
@@ -155,16 +155,12 @@ const AdminLogin = ({ onLogin, onClose }) => {
               name="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               required
             />
           </div>
-          
-          <button 
-            type="submit" 
-            className="login-button"
-            disabled={isLoading}
-          >
+
+          <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>

@@ -28,11 +28,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const verifyToken = async (token) => {
+  const verifyToken = async token => {
     try {
       const response = await fetch('/api/auth/verify', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = useCallback((token) => {
+  const login = useCallback(token => {
     localStorage.setItem('adminToken', token);
     setIsAdmin(true);
   }, []);
@@ -68,9 +68,5 @@ export const AuthProvider = ({ children }) => {
     [isAdmin, isLoading, editMode, login, logout, toggleEditMode]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

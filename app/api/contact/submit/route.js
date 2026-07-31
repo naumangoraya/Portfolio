@@ -60,12 +60,20 @@ export async function POST(request) {
 
     const linkCount = (message.match(/https?:\/\/[^\s]+/gi) || []).length;
     if (linkCount > 5) {
-      return fail(400, 'VALIDATION', 'Message contains too many links. Please review and try again.');
+      return fail(
+        400,
+        'VALIDATION',
+        'Message contains too many links. Please review and try again.'
+      );
     }
 
     if (!process.env.RESEND_API_KEY || !process.env.NOTIFICATION_EMAIL) {
       console.error('Contact form: RESEND_API_KEY or NOTIFICATION_EMAIL is not configured');
-      return fail(500, 'NOT_CONFIGURED', 'Email service not configured. Please contact the administrator.');
+      return fail(
+        500,
+        'NOT_CONFIGURED',
+        'Email service not configured. Please contact the administrator.'
+      );
     }
 
     // Initialize Resend lazily (after confirming the key exists) so the

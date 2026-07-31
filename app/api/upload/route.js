@@ -4,11 +4,7 @@ import { uploadImage } from '../../../lib/cloudinary';
 import { requireAdmin } from '../../../lib/api/requireAdmin';
 import { fail } from '../../../lib/api/respond';
 import { handleDbError } from '../../../lib/api/handleDbError';
-import {
-  validateUpload,
-  IMAGE_MIME_TYPES,
-  MAX_IMAGE_BYTES,
-} from '../../../lib/api/fileValidation';
+import { validateUpload, IMAGE_MIME_TYPES, MAX_IMAGE_BYTES } from '../../../lib/api/fileValidation';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

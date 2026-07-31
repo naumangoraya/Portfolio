@@ -51,7 +51,7 @@ const AdminPage = () => {
     }
   }, [isAdmin, isLoading, router]);
 
-  const handleLogin = (token) => {
+  const handleLogin = token => {
     // Persist the token AND flip isAdmin before navigating; router.push() is a
     // client-side nav that does not remount AuthProvider, so without this the
     // admin UI stayed hidden until a manual reload.
@@ -80,10 +80,7 @@ const AdminPage = () => {
         <StyledSubtitle>
           Enter your credentials to access the admin panel and manage your portfolio content.
         </StyledSubtitle>
-        <AdminLogin 
-          onLogin={handleLogin}
-          onClose={() => router.push('/')}
-        />
+        <AdminLogin onLogin={handleLogin} onClose={() => router.push('/')} />
       </StyledAdminContainer>
     </StyledAdminPage>
   );

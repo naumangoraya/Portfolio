@@ -1,218 +1,115 @@
-# 🚀 Dynamic Portfolio Website v4
+# Portfolio
 
-A modern, database-driven portfolio website built with Next.js 14, MongoDB, and Cloudinary. Features a comprehensive admin panel for real-time content management.
+A database-driven portfolio site built with Next.js (App Router), MongoDB and
+Cloudinary, with an admin layer for editing content without a deploy.
 
-## ✨ Features
+## Tech stack
 
-### 🎯 **Database-Driven Content**
-- **MongoDB Integration**: All content stored in database with flexible schemas
-- **Real-time Sync**: Frontend automatically updates when database changes
-- **No Required Fields**: All forms accept partial data and update gracefully
-- **Flexible Models**: Easy to add new fields without breaking existing functionality
+| Layer          | Choice                                               |
+| -------------- | ---------------------------------------------------- |
+| Framework      | Next.js 14 (App Router), React 18                    |
+| Styling        | styled-components v6 (SSR via `app/lib/registry.js`) |
+| Data           | MongoDB Atlas + Mongoose                             |
+| Validation     | Zod (shared by client forms and API routes)          |
+| Images / files | Cloudinary                                           |
+| Email          | Resend                                               |
+| Auth           | JWT (24h), bcrypt cost 12                            |
+| Hosting        | Vercel                                               |
 
-### 🖼️ **Image Management**
-- **Cloudinary Integration**: Professional image hosting and optimization
-- **Multiple Image Types**: Support for profile pictures, project galleries, logos
-- **Automatic Optimization**: Images automatically optimized for web
-- **Responsive Images**: Different sizes for different devices
+## Getting started
 
-### 🔐 **Admin Panel**
-- **Secure Authentication**: JWT-based admin authentication
-- **Full CRUD Operations**: Create, read, update, delete for all sections
-- **Real-time Editing**: Edit content directly from the frontend
-- **Save Buttons**: Every form has save functionality with database sync
+See **[docs/SETUP.md](./docs/SETUP.md)**. Short version:
 
-### 📱 **Responsive Design**
-- **Mobile-First**: Optimized for all device sizes
-- **Modern UI**: Clean, professional design with smooth animations
-- **Accessibility**: WCAG compliant with proper ARIA labels
-- **Performance**: Optimized loading and smooth interactions
-
-### 🗄️ **Content Sections**
-- **Hero**: Landing section with customizable greeting and call-to-action
-- **About**: Personal information, skills, and experience
-- **Projects**: Portfolio projects with images, descriptions, and links
-- **Jobs**: Work experience timeline
-- **Services**: Offered services with pricing and details
-- **Contact**: Contact information and social media links
-- **Education**: Educational background and achievements
-- **Archive**: Blog posts and articles
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 14, React 18, Styled Components
-- **Backend**: Next.js API Routes, MongoDB Atlas, Mongoose
-- **Database**: MongoDB Atlas (Cloud)
-- **Image Storage**: Cloudinary
-- **Authentication**: JWT
-- **Styling**: Styled Components, CSS-in-JS
-- **Deployment**: Vercel (recommended)
-
-## 🚀 Quick Start
-
-### 1. Clone Repository
 ```bash
-git clone <your-repo-url>
-cd v4-main
-npm install
-```
-
-### 2. Environment Setup
-Create `.env.local` file:
-```bash
-# MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/portfolio_v4?retryWrites=true&w=majority
-
-# JWT Secret
-JWT_SECRET=your-super-secret-jwt-key-here
-
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# Admin Credentials
-ADMIN_EMAIL=ad
-ADMIN_PASSWORD=ad
-```
-
-### 3. Environment Setup
-Create `.env.local` file with your MongoDB Atlas connection string and other credentials.
-
-### 4. Start Development
-```bash
+npm ci
+cp .env.example .env.local   # then fill it in
+npm run seed:admin
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see your portfolio!
-
-## 📖 MongoDB Atlas Setup
-
-For comprehensive setup instructions, see [SETUP.md](./SETUP.md)
-
-## 🗂️ Project Structure
+## Project structure
 
 ```
-v4-main/
-├── app/                    # Next.js 13+ app directory
-│   ├── api/               # API routes for all sections
-│   ├── admin/             # Admin panel
-│   └── page.js            # Main portfolio page
-├── lib/                   # Core libraries
-│   ├── models/            # MongoDB schemas
-│   ├── mongodb.js         # Database connection
-│   └── cloudinary.js      # Image management
-├── src/                   # Source code
-│   └── components/        # React components
-└── lib/                   # Core libraries
+app/
+  page.js                 home (Server Component, reads Mongo directly, ISR 60s)
+  layout.js               metadata, fonts, styled-components registry
+  ClientLayout.js         ThemeProvider + GlobalStyle + AuthProvider + Toaster
+  error.js  global-error.js  loading.js  not-found.js
+  sitemap.js  robots.js
+  admin/page.js           admin login
+  archive/                archive page + client
+  api/                    route handlers (see below)
+lib/
+  api/                    shared route layer
+    defineResource.js       CRUD factory (model + Zod schema -> handlers)
+    requireAdmin.js         the single auth gate
+    handleDbError.js        error -> status mapping, no internals leaked
+    respond.js              { ok, data } envelope
+    rateLimit.js            in-process limiter + trusted client IP
+    fileValidation.js       magic-byte upload sniffing
+  schemas/                Zod request schemas + write whitelists
+  models/                 Mongoose schemas
+  mongodb.js  cloudinary.js  auth.js  serialize.js
+src/
+  components/             UI, including sections/ and icons/
+  contexts/AuthContext.js
+  hooks/  styles/  utils/  config.js
+scripts/create-admin.mjs
 ```
 
-## 🔌 API Endpoints
+## API
 
-Each section provides full CRUD operations:
+Content endpoints are generated by `lib/api/defineResource.js`, so they share
+one auth path, one validation layer and one error mapping.
 
-| Section | Endpoint | Methods |
-|---------|----------|---------|
-| Hero | `/api/hero` | GET, POST, PUT, DELETE |
-| About | `/api/about` | GET, POST, PUT, DELETE |
-| Projects | `/api/projects` | GET, POST, PUT, DELETE |
-| Jobs | `/api/jobs` | GET, POST, PUT, DELETE |
-| Services | `/api/services` | GET, POST, PUT, DELETE |
-| Contact | `/api/contact` | GET, POST, PUT, DELETE |
-| Education | `/api/education` | GET, POST, PUT, DELETE |
-| Archive | `/api/archive` | GET, POST, PUT, DELETE |
+| Endpoint                                                        | Methods                | Shape                 |
+| --------------------------------------------------------------- | ---------------------- | --------------------- |
+| `/api/hero`, `/api/about`, `/api/contact`                       | GET, POST, PUT         | singleton             |
+| `/api/jobs`, `/api/services`, `/api/projects`, `/api/education` | GET, POST, PUT         | collection            |
+| `/api/{jobs,services,projects,education}/[id]`                  | GET, PUT, DELETE       | by id                 |
+| `/api/archive`                                                  | GET, POST, PUT, DELETE | keyed by `slug`       |
+| `/api/auth/login`, `/api/auth/verify`                           | POST, GET              |                       |
+| `/api/upload`, `/api/resume/upload`                             | POST                   | multipart, admin only |
+| `/api/contact/submit`                                           | POST                   | public, rate limited  |
 
-## 🎨 Customization
+Responses carry both a `{ ok, data }` envelope and the legacy per-entity key
+(`{ hero }`, `{ jobs }`, …) so the client can migrate independently.
 
-### Adding New Fields
-1. **Update Model**: Add field to `lib/models/[Model].js`
-2. **Add to Forms**: Include field in your admin forms
-3. **Automatic**: Database accepts new fields without migration
+Every mutating endpoint requires `Authorization: Bearer <token>`.
 
-### Adding New Sections
-1. **Create Model**: New schema in `lib/models/`
-2. **Add API**: Create routes in `app/api/`
-3. **Build Component**: React component in `src/components/sections/`
-4. **Include**: Add to main page
+## Content model
 
-### Styling
-- **Theme**: Customize colors in `src/styles/theme.js`
-- **Components**: Modify styled components in each section
-- **Global**: Update `src/styles/GlobalStyle.js`
+Eight Mongoose models: Hero, About, Job, Service, Project, Education, Contact,
+Archive. Hero/About/Contact are treated as singletons (`findOne({isActive:true})`);
+the rest are collections ordered by `order`.
 
-## 🚀 Deployment
+All models are `strict: false`, so the write whitelist in `lib/schemas/content.js`
+(`*_FIELDS`) is what prevents arbitrary keys being written. **Adding a field means
+adding it to the Zod schema too, or it will be silently dropped on save.**
 
-### Vercel (Recommended)
-1. Push to GitHub
-2. Connect repository to Vercel
-3. Set environment variables
-4. Deploy automatically
+## Security notes
 
-### Other Platforms
-- Update `MONGODB_URI` for production
-- Set production `NEXTAUTH_URL`
-- Configure production `JWT_SECRET`
+- One JWT verification path (`lib/auth.js`), pinned to HS256.
+- Login is rate limited per IP and per account, checks `isActive`, and compares
+  against a dummy hash when the user is missing so timing does not leak
+  which emails exist.
+- Uploads are validated by magic bytes, not the client-supplied MIME type.
+- Error responses never include `error.message` in production.
+- Security headers are set in `next.config.js`. There is deliberately **no CSP
+  yet** — styled-components needs nonce plumbing through the SSR registry.
+- The admin token lives in `localStorage`, so `/admin` is gated client-side
+  only; the real enforcement is `requireAdmin` on every mutating route.
 
-## 🔒 Security Features
+## Contributing
 
-- **JWT Authentication**: Secure admin access
-- **Input Validation**: All inputs sanitized
-- **CORS Protection**: API security
-- **Environment Variables**: Sensitive data protected
-- **Admin Only**: CRUD operations require authentication
+```bash
+npm run format
+npm run lint
+npm run build
+```
 
-## 📱 Admin Panel Features
+CI runs all three on every pull request.
 
-- **Real-time Editing**: Edit content directly on the page
-- **Image Upload**: Drag & drop image uploads
-- **Form Validation**: Client and server-side validation
-- **Auto-save**: Automatic saving with visual feedback
-- **Content Preview**: See changes before publishing
-- **Bulk Operations**: Manage multiple items at once
+## License
 
-## 🎯 Use Cases
-
-### For Developers
-- **Portfolio Showcase**: Display projects and skills
-- **Blog Platform**: Share technical articles
-- **Service Marketing**: Promote freelance services
-- **Resume Website**: Professional online presence
-
-### For Businesses
-- **Company Portfolio**: Showcase work and team
-- **Service Pages**: Detailed service descriptions
-- **Team Profiles**: Employee introductions
-- **Project Gallery**: Client work showcase
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
-## 🆘 Support
-
-- **Documentation**: Check [SETUP.md](./SETUP.md) for detailed instructions
-- **Issues**: Report bugs via GitHub Issues
-- **Discussions**: Ask questions in GitHub Discussions
-- **Wiki**: Check project wiki for additional resources
-
-## 🙏 Acknowledgments
-
-- **Next.js Team**: For the amazing framework
-- **MongoDB**: For the flexible database
-- **Cloudinary**: For image management
-- **Styled Components**: For CSS-in-JS solution
-- **Open Source Community**: For inspiration and tools
-
----
-
-**Made with ❤️ by [Your Name]**
-
-*Ready to build your amazing portfolio? Start with the [Quick Start](#-quick-start) guide above!*
+MIT — see [LICENSE](./LICENSE).
