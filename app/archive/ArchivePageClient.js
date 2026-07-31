@@ -377,15 +377,6 @@ export default function ArchivePageClient({ initialData = [] }) {
   }, [prefersReducedMotion]);
 
   // Debug authentication state
-  useEffect(() => {
-    console.log('Archive Page - Auth State:', { isAdmin, editMode, isLoading });
-    if (isAdmin) {
-      const token = localStorage.getItem('adminToken');
-      console.log('Admin token available:', !!token);
-      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
-    }
-  }, [isAdmin, editMode, isLoading]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -431,7 +422,6 @@ export default function ArchivePageClient({ initialData = [] }) {
     }
 
     setIsSubmitting(true);
-    console.log('Submitting form with token:', adminToken ? 'Token exists' : 'No token');
     
          try {
        // Validate required fields

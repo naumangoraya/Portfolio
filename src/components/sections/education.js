@@ -502,29 +502,6 @@ const Education = ({ data = [] }) => {
     }
   };
 
-  const seedEducationData = async () => {
-    try {
-      const response = await fetch('/api/education/seed', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        },
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        toast.success('Education seeded successfully!');
-        await fetchEducation();
-      } else {
-        const errorData = await response.json();
-        toast.error(`Failed to seed education: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error seeding education:', error);
-      toast.error('An error occurred while seeding education');
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -704,12 +681,6 @@ const Education = ({ data = [] }) => {
             <div className="admin-controls">
               <button className="add-button" onClick={handleAdd}>
                 Add Education Entry
-              </button>
-              <button 
-                className="seed-button" 
-                onClick={seedEducationData}
-              >
-                Seed with Dummy Data
               </button>
             </div>
           )}

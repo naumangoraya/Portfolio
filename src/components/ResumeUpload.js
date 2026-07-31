@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 import toast from 'react-hot-toast';
 
@@ -45,6 +47,7 @@ const StyledResumeUpload = styled.div`
 `;
 
 const ResumeUpload = () => {
+  const inputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -58,13 +61,16 @@ const ResumeUpload = () => {
       return;
     }
 
-    // Check file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+    // Matches the server limit in lib/api/fileValidation.js
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
       return;
     }
 
     await uploadResume(file);
+
+    // Without this, re-selecting the same file fires no change event.
+    event.target.value = '';
   };
 
   const uploadResume = async (file) => {
@@ -72,21 +78,21 @@ const ResumeUpload = () => {
     setUploadSuccess(false);
 
     try {
-      const formData = new FormData();
-      formData.append('resume', file);
-      
-      // Get admin token from localStorage
       const adminToken = localStorage.getItem('adminToken');
       if (!adminToken) {
         toast.error('Admin session expired. Please login again.');
         return;
       }
-      
-      formData.append('adminToken', adminToken);
+
+      const body = new FormData();
+      body.append('resume', file);
 
       const response = await fetch('/api/resume/upload', {
         method: 'POST',
-        body: formData,
+        // Sent as a header like every other route, so the server can reject
+        // before buffering the upload.
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body,
       });
 
       const result = await response.json();
@@ -94,11 +100,11 @@ const ResumeUpload = () => {
       if (response.ok) {
         toast.success('Resume uploaded successfully!');
         setUploadSuccess(true);
-        
+
         // Reset success state after 3 seconds
         setTimeout(() => setUploadSuccess(false), 3000);
       } else {
-        toast.error(result.error || 'Failed to upload resume');
+        toast.error(result.error?.message || result.message || 'Failed to upload resume');
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -110,7 +116,7 @@ const ResumeUpload = () => {
 
   const handleClick = () => {
     if (!isUploading) {
-      document.getElementById('resume-file-input').click();
+      inputRef.current?.click();
     }
   };
 
@@ -125,9 +131,10 @@ const ResumeUpload = () => {
       </button>
       
       <input
+        ref={inputRef}
         id="resume-file-input"
         type="file"
-        accept=".pdf"
+        accept="application/pdf"
         onChange={handleFileSelect}
         className="file-input"
       />

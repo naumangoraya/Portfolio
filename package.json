@@ -36,7 +36,8 @@
     "react-hot-toast": "^2.4.1",
     "react-transition-group": "^4.4.5",
     "resend": "^6.0.2",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

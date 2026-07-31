@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   compiler: {
     styledComponents: true,
+    // Strip debug logging from production builds. ~55 console.log calls shipped,
+    // several in render bodies, and error/warn are the ones worth keeping.
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   images: {
     // `domains` is deprecated (removed in Next 16) — remotePatterns covers it.

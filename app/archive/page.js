@@ -13,7 +13,8 @@ async function getArchiveData() {
   try {
     await dbConnect();
 
-    const archiveData = await Archive.find({ isActive: true })
+    // Matches GET /api/archive exactly. Drafts were publicly readable before.
+    const archiveData = await Archive.find({ isActive: true, status: 'Published' })
       .sort({ order: 1, date: -1 })
       .lean();
 
