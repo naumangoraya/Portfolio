@@ -111,7 +111,7 @@ export async function PUT(request) {
     const archive = await Archive.findOneAndUpdate(
       { slug },
       { $set: fields },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).lean();
 
     if (!archive) return fail(404, 'NOT_FOUND', 'Archive record not found');
