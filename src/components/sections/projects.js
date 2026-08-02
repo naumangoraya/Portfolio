@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import Link from 'next/link';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import { Icon } from '@components/icons';
 import sr from '@utils/sr';
 import { srConfig } from '@config';
@@ -17,11 +18,11 @@ import toast from 'react-hot-toast';
 // Helper function to get adjustable image URL
 const getAdjustableImageUrl = (url, width = 300, height = 200, crop = 'fill') => {
   if (!url || !url.includes('cloudinary.com')) return url;
-  
+
   // If it's a Cloudinary URL, add transformation parameters
   const baseUrl = url.split('/upload/')[0] + '/upload/';
   const publicId = url.split('/upload/')[1];
-  
+
   return `${baseUrl}c_fill,w_${width},h_${height},q_auto/${publicId}`;
 };
 
@@ -347,7 +348,9 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea, select {
+      input,
+      textarea,
+      select {
         width: 100%;
         padding: 10px;
         background: var(--light-navy);
@@ -372,7 +375,7 @@ const StyledModal = styled.div`
         align-items: center;
         gap: 10px;
 
-        input[type="checkbox"] {
+        input[type='checkbox'] {
           width: auto;
         }
       }
@@ -413,7 +416,7 @@ const StyledModal = styled.div`
 const Projects = ({ data = [] }) => {
   const { isAdmin, editMode } = useAuth();
   const { projects, regularProjects, isLoading, error, refreshData } = useProjects(data);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -425,7 +428,7 @@ const Projects = ({ data = [] }) => {
     tech: '',
     image: { url: '', alt: '' },
     featured: false,
-    showInProjects: true
+    showInProjects: true,
   });
   const [showMore, setShowMore] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -436,10 +439,10 @@ const Projects = ({ data = [] }) => {
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const GRID_LIMIT = 6;
-  
+
   // Use only projects from database - no dummy data fallback
   const displayProjects = regularProjects;
-  
+
   // Calculate which projects to show based on showMore state
   const projectsToShow = showMore ? displayProjects : displayProjects.slice(0, GRID_LIMIT);
 
@@ -466,15 +469,15 @@ const Projects = ({ data = [] }) => {
     initializeAnimations();
   }, [prefersReducedMotion]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleImageUpload = async (file) => {
+  const handleImageUpload = async file => {
     if (!file) return;
 
     setIsUploading(true);
@@ -485,24 +488,24 @@ const Projects = ({ data = [] }) => {
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
         body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
-        
+
         // Update the form data with the uploaded image
         setFormData(prev => ({
           ...prev,
           image: {
             url: result.url,
             alt: prev.image.alt || file.name,
-            publicId: result.publicId
-          }
+            publicId: result.publicId,
+          },
         }));
-        
+
         toast.success('Image uploaded successfully!');
       } else {
         toast.error('Failed to upload image');
@@ -518,13 +521,13 @@ const Projects = ({ data = [] }) => {
   const removeImage = () => {
     setFormData(prev => ({
       ...prev,
-      image: { url: '', alt: '' }
+      image: { url: '', alt: '' },
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.description) {
       toast.error('Title and description are required');
       return;
@@ -539,13 +542,18 @@ const Projects = ({ data = [] }) => {
 
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       };
 
       // Process tech array from comma-separated string
       const processedData = {
         ...formData,
-        tech: formData.tech ? formData.tech.split(',').map(t => t.trim()).filter(t => t) : []
+        tech: formData.tech
+          ? formData.tech
+              .split(',')
+              .map(t => t.trim())
+              .filter(t => t)
+          : [],
       };
 
       let response;
@@ -554,36 +562,38 @@ const Projects = ({ data = [] }) => {
         response = await fetch(`/api/projects/${editingProject._id}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify(processedData)
+          body: JSON.stringify(processedData),
         });
       } else {
         // Create new project
         response = await fetch('/api/projects', {
           method: 'POST',
           headers,
-          body: JSON.stringify(processedData)
+          body: JSON.stringify(processedData),
         });
       }
 
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(isEditing ? 'Project updated successfully!' : 'Project created successfully!');
-        
+        toast.success(
+          isEditing ? 'Project updated successfully!' : 'Project created successfully!'
+        );
+
         // Refresh data
         refreshData();
-        
+
         // Reset form and close modal
-            setFormData({
-      title: '',
-      description: '',
-      github: '',
-      external: '',
-      tech: '',
-      image: { url: '', alt: '' },
-      featured: false,
-      showInProjects: true
-    });
+        setFormData({
+          title: '',
+          description: '',
+          github: '',
+          external: '',
+          tech: '',
+          image: { url: '', alt: '' },
+          featured: false,
+          showInProjects: true,
+        });
         setIsModalOpen(false);
         setIsEditing(false);
         setEditingProject(null);
@@ -597,7 +607,7 @@ const Projects = ({ data = [] }) => {
     }
   };
 
-  const handleEdit = (project) => {
+  const handleEdit = project => {
     setEditingProject(project);
     setFormData({
       title: project.title || '',
@@ -607,13 +617,13 @@ const Projects = ({ data = [] }) => {
       tech: Array.isArray(project.tech) ? project.tech.join(', ') : project.tech || '',
       image: project.image || { url: '', alt: '' },
       featured: project.featured || false,
-      showInProjects: project.showInProjects !== false
+      showInProjects: project.showInProjects !== false,
     });
     setIsEditing(true);
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (projectId) => {
+  const handleDelete = async projectId => {
     if (!confirm('Are you sure you want to delete this project?')) {
       return;
     }
@@ -628,8 +638,8 @@ const Projects = ({ data = [] }) => {
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
@@ -647,7 +657,7 @@ const Projects = ({ data = [] }) => {
     }
   };
 
-  const handleToggleFeatured = async (project) => {
+  const handleToggleFeatured = async project => {
     try {
       const token = localStorage.getItem('adminToken');
       if (!token) {
@@ -658,23 +668,25 @@ const Projects = ({ data = [] }) => {
       const updatedData = {
         ...project,
         featured: !project.featured,
-        showInProjects: project.featured // If it was featured, now show in projects
+        showInProjects: project.featured, // If it was featured, now show in projects
       };
 
       const response = await fetch(`/api/projects/${project._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify(updatedData),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(project.featured ? 'Project moved to regular projects!' : 'Project marked as featured!');
-        
+        toast.success(
+          project.featured ? 'Project moved to regular projects!' : 'Project marked as featured!'
+        );
+
         // Refresh data
         refreshData();
       } else {
@@ -702,7 +714,7 @@ const Projects = ({ data = [] }) => {
       tech: '',
       image: { url: '', alt: '' },
       featured: false,
-      showInProjects: true
+      showInProjects: true,
     });
   };
 
@@ -714,29 +726,31 @@ const Projects = ({ data = [] }) => {
         {isAdmin && editMode && (
           <div className="admin-project-controls">
             <button onClick={() => handleEdit(project)}>Edit</button>
-            <button className="delete" onClick={() => handleDelete(project._id)}>Delete</button>
-            <button 
-              className={featured ? "unfeature" : "feature"}
+            <button className="delete" onClick={() => handleDelete(project._id)}>
+              Delete
+            </button>
+            <button
+              className={featured ? 'unfeature' : 'feature'}
               onClick={() => handleToggleFeatured(project)}
             >
               {featured ? 'Unfeature' : 'Feature'}
             </button>
           </div>
         )}
-        
+
         {/* Only show images for featured projects */}
         {featured && image && image.url && (
-          <div 
+          <div
             className="project-image"
-            style={{ backgroundImage: `url(${getAdjustableImageUrl(image.url, 300, 200, 'fill')})` }}
+            style={{
+              backgroundImage: `url(${getAdjustableImageUrl(image.url, 300, 200, 'fill')})`,
+            }}
           >
             <div className="featured-badge">Featured</div>
-            <div className="image-overlay">
-              {image.alt || 'Project Preview'}
-            </div>
+            <div className="image-overlay">{image.alt || 'Project Preview'}</div>
           </div>
         )}
-        
+
         <header>
           <div className="project-top">
             <div className="folder">
@@ -754,7 +768,8 @@ const Projects = ({ data = [] }) => {
                   aria-label="External Link"
                   className="external"
                   target="_blank"
-                  rel="noreferrer">
+                  rel="noreferrer"
+                >
                   <Icon name="External" />
                 </a>
               )}
@@ -763,13 +778,11 @@ const Projects = ({ data = [] }) => {
 
           <h3 className="project-title">
             <a href={external || github} target="_blank" rel="noopener noreferrer">
-                              {formatTextWithBackticks(title)}
+              {formatTextWithBackticks(title)}
             </a>
           </h3>
 
-                                    <div className="project-description">
-                    {formatTextWithBackticks(description)}
-                  </div>
+          <div className="project-description">{formatTextWithBackticks(description)}</div>
         </header>
 
         <footer>
@@ -804,21 +817,25 @@ const Projects = ({ data = [] }) => {
 
         <ul className="projects-grid">
           {isLoading ? (
-            <div style={{ 
-              gridColumn: '1 / -1', 
-              textAlign: 'center', 
-              padding: '40px',
-              color: 'var(--light-slate)'
-            }}>
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '40px',
+                color: 'var(--light-slate)',
+              }}
+            >
               Loading projects...
             </div>
           ) : error ? (
-            <div style={{ 
-              gridColumn: '1 / -1', 
-              textAlign: 'center', 
-              padding: '40px',
-              color: '#ff6b6b'
-            }}>
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '40px',
+                color: '#ff6b6b',
+              }}
+            >
               Error loading projects: {error}
             </div>
           ) : displayProjects && displayProjects.length > 0 ? (
@@ -833,30 +850,34 @@ const Projects = ({ data = [] }) => {
               <TransitionGroup component={null}>
                 {projectsToShow &&
                   projectsToShow.map((project, i) => (
-                    <CSSTransition
+                    <FadeIn
                       key={project._id || i}
                       classNames="fadeup"
                       timeout={i >= GRID_LIMIT ? (i - GRID_LIMIT) * 300 : 300}
-                      exit={false}>
+                      exit={false}
+                    >
                       <StyledProject
                         key={project._id || i}
                         ref={el => (revealProjects.current[i] = el)}
                         style={{
                           transitionDelay: `${i >= GRID_LIMIT ? (i - GRID_LIMIT) * 100 : 0}ms`,
-                        }}>
+                        }}
+                      >
                         {projectInner(project)}
                       </StyledProject>
-                    </CSSTransition>
+                    </FadeIn>
                   ))}
               </TransitionGroup>
             )
           ) : (
-            <div style={{ 
-              gridColumn: '1 / -1', 
-              textAlign: 'center', 
-              padding: '40px',
-              color: 'var(--light-slate)'
-            }}>
+            <div
+              style={{
+                gridColumn: '1 / -1',
+                textAlign: 'center',
+                padding: '40px',
+                color: 'var(--light-slate)',
+              }}
+            >
               <h3 style={{ marginBottom: '20px', color: 'var(--lightest-slate)' }}>
                 No Projects Yet
               </h3>
@@ -874,7 +895,7 @@ const Projects = ({ data = [] }) => {
                     padding: '12px 24px',
                     fontSize: '16px',
                     cursor: 'pointer',
-                    fontWeight: '600'
+                    fontWeight: '600',
                   }}
                 >
                   Add Your First Project
@@ -892,7 +913,7 @@ const Projects = ({ data = [] }) => {
       </StyledProjectsSection>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>{editingProject ? 'Edit Project' : 'Add New Project'}</h3>
             <form onSubmit={handleSubmit}>
@@ -908,8 +929,6 @@ const Projects = ({ data = [] }) => {
                 />
               </div>
 
-
-
               <div className="form-group">
                 <label htmlFor="description">Description *</label>
                 <textarea
@@ -922,7 +941,10 @@ const Projects = ({ data = [] }) => {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="tech" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="tech"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Technologies (comma-separated)
                 </label>
                 <input
@@ -938,7 +960,7 @@ const Projects = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
@@ -970,49 +992,57 @@ const Projects = ({ data = [] }) => {
                   <input
                     type="checkbox"
                     checked={formData.featured}
-                    onChange={(e) => setFormData({...formData, featured: e.target.checked})}
+                    onChange={e => setFormData({ ...formData, featured: e.target.checked })}
                   />
                   Featured Project
                 </label>
-                <div style={{ 
-                  fontSize: 'var(--fz-xs)', 
-                  color: 'var(--slate)', 
-                  marginLeft: '25px',
-                  fontStyle: 'italic'
-                }}>
-                  Featured projects appear in the &quot;Some Things I&apos;ve Built&quot; section with images. 
-                  Regular projects appear in &quot;Other Noteworthy Projects&quot; without images.
+                <div
+                  style={{
+                    fontSize: 'var(--fz-xs)',
+                    color: 'var(--slate)',
+                    marginLeft: '25px',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Featured projects appear in the &quot;Some Things I&apos;ve Built&quot; section
+                  with images. Regular projects appear in &quot;Other Noteworthy Projects&quot;
+                  without images.
                 </div>
               </div>
 
               <div className="form-group">
                 <label htmlFor="project-image">Project Image (Featured Projects Only)</label>
-                <div style={{ 
-                  fontSize: 'var(--fz-xs)', 
-                  color: 'var(--slate)', 
-                  marginBottom: '10px',
-                  fontStyle: 'italic'
-                }}>
-                  Images are only displayed for featured projects. Regular projects will not show images.
+                <div
+                  style={{
+                    fontSize: 'var(--fz-xs)',
+                    color: 'var(--slate)',
+                    marginBottom: '10px',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  Images are only displayed for featured projects. Regular projects will not show
+                  images.
                 </div>
                 {formData.image.url ? (
                   <div style={{ marginBottom: '10px' }}>
-                    <img 
-                      src={formData.image.url} 
-                      alt="Project preview" 
-                      style={{ 
-                        width: '100%', 
-                        height: '150px', 
-                        objectFit: 'cover', 
+                    <img
+                      src={formData.image.url}
+                      alt="Project preview"
+                      style={{
+                        width: '100%',
+                        height: '150px',
+                        objectFit: 'cover',
                         borderRadius: '4px',
-                        border: '1px solid var(--lightest-navy)'
-                      }} 
+                        border: '1px solid var(--lightest-navy)',
+                      }}
                     />
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '10px', 
-                      marginTop: '10px' 
-                    }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        marginTop: '10px',
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={removeImage}
@@ -1023,7 +1053,7 @@ const Projects = ({ data = [] }) => {
                           borderRadius: '4px',
                           padding: '8px 12px',
                           cursor: 'pointer',
-                          fontSize: '12px'
+                          fontSize: '12px',
                         }}
                       >
                         Remove Image
@@ -1031,19 +1061,21 @@ const Projects = ({ data = [] }) => {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ 
-                    border: '2px dashed var(--lightest-navy)', 
-                    borderRadius: '4px', 
-                    padding: '20px', 
-                    textAlign: 'center',
-                    background: 'var(--light-navy)'
-                  }}>
-                    <label 
+                  <div
+                    style={{
+                      border: '2px dashed var(--lightest-navy)',
+                      borderRadius: '4px',
+                      padding: '20px',
+                      textAlign: 'center',
+                      background: 'var(--light-navy)',
+                    }}
+                  >
+                    <label
                       htmlFor="image-upload"
-                      style={{ 
+                      style={{
                         cursor: 'pointer',
                         color: 'var(--green)',
-                        fontWeight: '600'
+                        fontWeight: '600',
                       }}
                     >
                       {isUploading ? 'Uploading...' : 'Click to upload image'}
@@ -1052,7 +1084,7 @@ const Projects = ({ data = [] }) => {
                       id="image-upload"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleImageUpload(e.target.files[0])}
+                      onChange={e => handleImageUpload(e.target.files[0])}
                       style={{ display: 'none' }}
                     />
                   </div>
@@ -1066,10 +1098,12 @@ const Projects = ({ data = [] }) => {
                   id="imageAlt"
                   name="imageAlt"
                   value={formData.image.alt}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    image: { ...prev.image, alt: e.target.value }
-                  }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      image: { ...prev.image, alt: e.target.value },
+                    }))
+                  }
                   placeholder="Describe the image for accessibility"
                 />
               </div>

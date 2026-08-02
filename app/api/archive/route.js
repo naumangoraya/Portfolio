@@ -1,223 +1,149 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '../../../lib/mongodb';
-import Archive from '../../../lib/models/Archive';
-import jwt from 'jsonwebtoken';
+import { revalidatePath } from 'next/cache';
+import dbConnect from '../../../lib/mongodb.js';
+import Archive from '../../../lib/models/Archive.js';
+import { serializeData } from '../../../lib/serialize.js';
+import { ArchiveSchema, ARCHIVE_FIELDS } from '../../../lib/schemas/content.js';
+import { ok, fail } from '../../../lib/api/respond.js';
+import { requireAdmin } from '../../../lib/api/requireAdmin.js';
+import { handleDbError } from '../../../lib/api/handleDbError.js';
 
-// Middleware to verify admin token
-const verifyAdmin = (request) => {
-  const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { success: false, message: 'No token provided' };
-  }
+// This route is keyed by `slug` rather than `_id`, so it stays hand-written
+// instead of using defineResource.
+//
+// It was also the only base route missing `force-dynamic` while exporting a
+// GET with no `request` argument, i.e. exactly the shape Next 14 evaluates once
+// at build and caches forever — and its mutations never called revalidatePath,
+// so nothing would have busted that cache.
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-  const token = authHeader.substring(7);
+const REVALIDATE = ['/', '/archive'];
+const bump = () => REVALIDATE.forEach(path => revalidatePath(path));
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    if (decoded.exp < Date.now() / 1000) {
-      return { success: false, message: 'Token expired' };
-    }
+const slugify = title =>
+  String(title)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 
-    if (!decoded.isAdmin) {
-      return { success: false, message: 'Insufficient permissions' };
-    }
+const pick = obj =>
+  Object.fromEntries(Object.entries(obj).filter(([key]) => ARCHIVE_FIELDS.includes(key)));
 
-    return { success: true, user: decoded };
-  } catch (jwtError) {
-    return { success: false, message: 'Invalid token' };
-  }
-};
-
-// GET - Fetch all archive records
 export async function GET() {
   try {
-    console.log('🔍 Archive API: Starting GET request...');
     await dbConnect();
-    console.log('✅ Archive API: Database connected');
-    
-    const archive = await Archive.find({ isActive: true })
-      .sort({ order: 1, publishDate: -1 });
-    
-    console.log('📊 Archive API: Found records:', {
-      count: archive.length,
-      records: archive.map(item => ({
-        id: item._id,
-        title: item.title,
-        slug: item.slug,
-        isActive: item.isActive
-      }))
-    });
-    
-    return NextResponse.json({ projects: archive });
+
+    // Sorts on `date`, not `publishDate`: no write path ever sets publishDate,
+    // so the old secondary sort was inert and disagreed with /archive's own
+    // query, meaning the page and the API could return different orderings.
+    const archive = await Archive.find({ isActive: true, status: 'Published' })
+      .sort({ order: 1, date: -1 })
+      .lean();
+
+    // NOTE: the legacy key really is `projects`, not `archive`. Preserved so
+    // ArchivePageClient keeps working; renamed when the client moves to `data`.
+    return ok(serializeData(archive) ?? [], { legacyKey: 'projects' });
   } catch (error) {
-    console.error('❌ Archive API: Error fetching archive:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+    return handleDbError(error, 'Archive');
   }
 }
 
-// POST - Create new archive record
 export async function POST(request) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
-    const authResult = verifyAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.message },
-        { status: 401 }
-      );
+    await dbConnect();
+
+    const body = await request.json();
+    const input = ArchiveSchema.parse(body);
+
+    // `.toLowerCase()` on a missing title used to throw a TypeError -> 500.
+    if (!input.title) {
+      return fail(400, 'VALIDATION', 'Title is required');
     }
 
-    await dbConnect();
-    
-    const archiveData = await request.json();
-    
-    // Generate slug from title
-    const slug = archiveData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    
-    // Check if slug already exists
-    const existingSlug = await Archive.findOne({ slug });
-    if (existingSlug) {
-      return NextResponse.json(
-        { error: 'A project with this title already exists' },
-        { status: 400 }
-      );
+    const slug = input.slug || slugify(input.title);
+
+    if (await Archive.exists({ slug })) {
+      return fail(409, 'DUPLICATE', 'A project with this title already exists');
     }
-    
-    // Create new archive record
-    const archive = new Archive({
-      ...archiveData,
+
+    const archive = await Archive.create({
+      ...pick(input),
       slug,
       isActive: true,
-      order: archiveData.order || 1,
-      status: archiveData.status || 'Published',
-      featured: archiveData.featured || false
+      order: input.order ?? 1,
+      status: input.status || 'Published',
+      featured: input.featured ?? false,
     });
-    
-    await archive.save();
-    
-    return NextResponse.json({ 
-      success: true, 
-      archive,
-      message: 'Archive record created successfully' 
+
+    bump();
+    return ok(serializeData(archive.toObject()), {
+      status: 201,
+      legacyKey: 'archive',
+      message: 'Archive record created successfully',
     });
   } catch (error) {
-    console.error('Error creating archive:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+    return handleDbError(error, 'Archive');
   }
 }
 
-// PUT - Update archive record
 export async function PUT(request) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
-    const authResult = verifyAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.message },
-        { status: 401 }
-      );
+    await dbConnect();
+
+    const body = await request.json();
+    const { slug } = body;
+
+    if (!slug || typeof slug !== 'string') {
+      return fail(400, 'VALIDATION', 'Archive slug is required');
     }
 
-    await dbConnect();
-    
-    const updateData = await request.json();
-    const { slug, ...updateFields } = updateData;
-    
-    if (!slug) {
-      return NextResponse.json(
-        { error: 'Archive slug is required' },
-        { status: 400 }
-      );
-    }
-    
-    console.log('✏️ Updating archive with slug:', slug);
-    console.log('📝 Update fields:', updateFields);
-    
+    const input = ArchiveSchema.parse(body);
+    // The slug identifies the record; it is not itself updatable here.
+    const fields = pick(input);
+    delete fields.slug;
+
     const archive = await Archive.findOneAndUpdate(
       { slug },
-      { ...updateFields, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-    
-    if (!archive) {
-      console.log('❌ Archive not found with slug:', slug);
-      return NextResponse.json(
-        { error: 'Archive record not found' },
-        { status: 404 }
-      );
-    }
-    
-    console.log('✅ Archive updated successfully:', archive.title);
-    
-    return NextResponse.json({ 
-      success: true, 
-      archive,
-      message: 'Archive record updated successfully' 
+      { $set: fields },
+      { returnDocument: 'after', runValidators: true }
+    ).lean();
+
+    if (!archive) return fail(404, 'NOT_FOUND', 'Archive record not found');
+
+    bump();
+    return ok(serializeData(archive), {
+      legacyKey: 'archive',
+      message: 'Archive record updated successfully',
     });
   } catch (error) {
-    console.error('❌ Error updating archive:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+    return handleDbError(error, 'Archive');
   }
 }
 
-// DELETE - Delete archive record
 export async function DELETE(request) {
-  try {
-    const authResult = verifyAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: authResult.message },
-        { status: 401 }
-      );
-    }
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
 
+  try {
     await dbConnect();
-    
-    const { searchParams } = new URL(request.url);
-    const slug = searchParams.get('slug');
-    
-    if (!slug) {
-      return NextResponse.json(
-        { error: 'Archive slug is required' },
-        { status: 400 }
-      );
-    }
-    
-    console.log('🗑️ Deleting archive with slug:', slug);
-    
+
+    const slug = new URL(request.url).searchParams.get('slug');
+
+    if (!slug) return fail(400, 'VALIDATION', 'Archive slug is required');
+
     const archive = await Archive.findOneAndDelete({ slug });
-    
-    if (!archive) {
-      console.log('❌ Archive not found with slug:', slug);
-      return NextResponse.json(
-        { error: 'Archive record not found' },
-        { status: 404 }
-      );
-    }
-    
-    console.log('✅ Archive deleted successfully:', archive.title);
-    
-    return NextResponse.json({ 
-      success: true,
-      message: 'Archive record deleted successfully' 
-    });
+
+    if (!archive) return fail(404, 'NOT_FOUND', 'Archive record not found');
+
+    bump();
+    return ok({ slug }, { legacyKey: 'archive', message: 'Archive record deleted successfully' });
   } catch (error) {
-    console.error('❌ Error deleting archive:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+    return handleDbError(error, 'Archive');
   }
 }

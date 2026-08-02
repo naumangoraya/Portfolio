@@ -55,7 +55,7 @@ const StyledTableContainer = styled.div`
 
     tbody tr {
       position: relative;
-      
+
       &:hover,
       &:focus {
         background-color: var(--light-navy);
@@ -163,17 +163,17 @@ const StyledTableContainer = styled.div`
         white-space: nowrap;
       }
 
-             &.tech {
-         font-size: var(--fz-sm);
-         font-family: var(--font-mono);
-         line-height: 1.5;
-         .separator {
-           margin: 0 5px;
-         }
-         span {
-           display: inline-block;
-         }
-       }
+      &.tech {
+        font-size: var(--fz-sm);
+        font-family: var(--font-mono);
+        line-height: 1.5;
+        .separator {
+          margin: 0 5px;
+        }
+        span {
+          display: inline-block;
+        }
+      }
 
       &.links {
         min-width: 100px;
@@ -237,7 +237,8 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea {
+      input,
+      textarea {
         width: 100%;
         padding: 10px;
         background: var(--light-navy);
@@ -334,7 +335,7 @@ export default function ArchivePageClient({ initialData = [] }) {
   const revealProjects = useRef([]);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { isAdmin, editMode, isLoading } = useAuth();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [archiveData, setArchiveData] = useState(initialData);
@@ -349,22 +350,22 @@ export default function ArchivePageClient({ initialData = [] }) {
     external: '',
     ios: '',
     android: '',
-    content: ''
+    content: '',
   });
 
-     // Fetch initial data only if not provided as prop
-   useEffect(() => {
-     console.log('🚀 Component mounted, initialData:', initialData?.length || 0, 'items');
-     console.log('📊 Initial archiveData state:', archiveData);
-     
-     // Only fetch from API if no initialData provided
-     if (!initialData || initialData.length === 0) {
-       console.log('🔄 No initial data provided, fetching from API...');
-       refreshArchiveData();
-     } else {
-       console.log('✅ Using provided initialData, no API fetch needed');
-     }
-   }, [initialData]);
+  // Fetch initial data only if not provided as prop
+  useEffect(() => {
+    console.log('🚀 Component mounted, initialData:', initialData?.length || 0, 'items');
+    console.log('📊 Initial archiveData state:', archiveData);
+
+    // Only fetch from API if no initialData provided
+    if (!initialData || initialData.length === 0) {
+      console.log('🔄 No initial data provided, fetching from API...');
+      refreshArchiveData();
+    } else {
+      console.log('✅ Using provided initialData, no API fetch needed');
+    }
+  }, [initialData]);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -377,47 +378,38 @@ export default function ArchivePageClient({ initialData = [] }) {
   }, [prefersReducedMotion]);
 
   // Debug authentication state
-  useEffect(() => {
-    console.log('Archive Page - Auth State:', { isAdmin, editMode, isLoading });
-    if (isAdmin) {
-      const token = localStorage.getItem('adminToken');
-      console.log('Admin token available:', !!token);
-      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
-    }
-  }, [isAdmin, editMode, isLoading]);
-
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleTechChange = (e) => {
+  const handleTechChange = e => {
     if (e.key === 'Enter' && e.target.value.trim()) {
       e.preventDefault();
       const newTech = e.target.value.trim();
       if (newTech && !formData.tech.includes(newTech)) {
         setFormData(prev => ({
           ...prev,
-          tech: [...prev.tech, newTech]
+          tech: [...prev.tech, newTech],
         }));
         e.target.value = '';
       }
     }
   };
 
-  const removeTech = (index) => {
+  const removeTech = index => {
     setFormData(prev => ({
       ...prev,
-      tech: prev.tech.filter((_, i) => i !== index)
+      tech: prev.tech.filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     // Check authentication before submitting
     if (!isAdmin) {
       toast.error('You must be logged in as admin to perform this action');
@@ -431,32 +423,31 @@ export default function ArchivePageClient({ initialData = [] }) {
     }
 
     setIsSubmitting(true);
-    console.log('Submitting form with token:', adminToken ? 'Token exists' : 'No token');
-    
-         try {
-       // Validate required fields
-       if (!formData.title.trim()) {
-         toast.error('Title is required');
-         return;
-       }
-       
-       if (!formData.date) {
-         toast.error('Date is required');
-         return;
-       }
-       
-       // Clean and prepare form data - handle empty fields properly
-       const cleanedFormData = {
-         title: formData.title.trim(),
-         company: formData.company.trim() || null,
-         date: formData.date,
-         tech: formData.tech.filter(tech => tech.trim() !== ''),
-         github: formData.github.trim() || null,
-         external: formData.external.trim() || null,
-         ios: formData.ios.trim() || null,
-         android: formData.android.trim() || null,
-         content: formData.content.trim() || ''
-       };
+
+    try {
+      // Validate required fields
+      if (!formData.title.trim()) {
+        toast.error('Title is required');
+        return;
+      }
+
+      if (!formData.date) {
+        toast.error('Date is required');
+        return;
+      }
+
+      // Clean and prepare form data - handle empty fields properly
+      const cleanedFormData = {
+        title: formData.title.trim(),
+        company: formData.company.trim() || null,
+        date: formData.date,
+        tech: formData.tech.filter(tech => tech.trim() !== ''),
+        github: formData.github.trim() || null,
+        external: formData.external.trim() || null,
+        ios: formData.ios.trim() || null,
+        android: formData.android.trim() || null,
+        content: formData.content.trim() || '',
+      };
 
       console.log('Submitting cleaned data:', cleanedFormData);
       console.log('Tech array before submission:', formData.tech);
@@ -466,40 +457,40 @@ export default function ArchivePageClient({ initialData = [] }) {
         // Update existing project
         const headers = {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`,
+          Authorization: `Bearer ${adminToken}`,
         };
         console.log('Update request headers:', headers);
-        
-                 const response = await fetch('/api/archive', {
-           method: 'PUT',
-           headers,
-           body: JSON.stringify({
-             ...cleanedFormData,
-             slug: editingProject.slug // Include the slug for the API
-           }),
-         });
+
+        const response = await fetch('/api/archive', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            ...cleanedFormData,
+            slug: editingProject.slug, // Include the slug for the API
+          }),
+        });
 
         console.log('Update response status:', response.status);
 
-                 if (response.ok) {
-           const updatedProject = await response.json();
-           console.log('Update response:', updatedProject);
-           await refreshArchiveData();
-           toast.success('Archive entry updated successfully!');
-         } else {
-           const errorData = await response.json();
-           console.error('Update failed:', errorData);
-           toast.error(`Failed to update archive entry: ${errorData.error || 'Unknown error'}`);
-           return; // Don't close modal on error
-         }
+        if (response.ok) {
+          const updatedProject = await response.json();
+          console.log('Update response:', updatedProject);
+          await refreshArchiveData();
+          toast.success('Archive entry updated successfully!');
+        } else {
+          const errorData = await response.json();
+          console.error('Update failed:', errorData);
+          toast.error(`Failed to update archive entry: ${errorData.error || 'Unknown error'}`);
+          return; // Don't close modal on error
+        }
       } else {
         // Create new project
         const headers = {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`,
+          Authorization: `Bearer ${adminToken}`,
         };
         console.log('Create request headers:', headers);
-        
+
         const response = await fetch('/api/archive', {
           method: 'POST',
           headers,
@@ -508,33 +499,33 @@ export default function ArchivePageClient({ initialData = [] }) {
 
         console.log('Create response status:', response.status);
 
-                 if (response.ok) {
-           const newProject = await response.json();
-           console.log('API response data:', newProject);
-           await refreshArchiveData();
-           toast.success('Archive entry created successfully!');
-         } else {
-           const errorData = await response.json();
-           console.error('Create failed:', errorData);
-           toast.error(`Failed to create archive entry: ${errorData.error || 'Unknown error'}`);
-           return; // Don't close modal on error
-         }
+        if (response.ok) {
+          const newProject = await response.json();
+          console.log('API response data:', newProject);
+          await refreshArchiveData();
+          toast.success('Archive entry created successfully!');
+        } else {
+          const errorData = await response.json();
+          console.error('Create failed:', errorData);
+          toast.error(`Failed to create archive entry: ${errorData.error || 'Unknown error'}`);
+          return; // Don't close modal on error
+        }
       }
 
-             setIsModalOpen(false);
-       setEditingProject(null);
-       resetForm();
-     } catch (error) {
-       console.error('Error saving archive entry:', error);
-       toast.error('An error occurred while saving the archive entry');
-     } finally {
-       setIsSubmitting(false);
-     }
+      setIsModalOpen(false);
+      setEditingProject(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving archive entry:', error);
+      toast.error('An error occurred while saving the archive entry');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleEdit = (project) => {
+  const handleEdit = project => {
     setEditingProject(project);
-    
+
     // Format date for input field (YYYY-MM-DD)
     let formattedDate = '';
     if (project.date) {
@@ -543,7 +534,7 @@ export default function ArchivePageClient({ initialData = [] }) {
         formattedDate = date.toISOString().split('T')[0];
       }
     }
-    
+
     setFormData({
       title: project.title || '',
       company: project.company || '',
@@ -553,41 +544,41 @@ export default function ArchivePageClient({ initialData = [] }) {
       external: project.external || '',
       ios: project.ios || '',
       android: project.android || '',
-      content: project.content || ''
+      content: project.content || '',
     });
     setIsModalOpen(true);
   };
 
-     const handleDelete = async (projectSlug) => {
-     if (!confirm('Are you sure you want to delete this archive entry?')) {
-       return;
-     }
+  const handleDelete = async projectSlug => {
+    if (!confirm('Are you sure you want to delete this archive entry?')) {
+      return;
+    }
 
-     try {
-       console.log('🗑️ Attempting to delete archive with slug:', projectSlug);
-       
-       const response = await fetch(`/api/archive?slug=${projectSlug}`, {
-         method: 'DELETE',
-         headers: {
-           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-         },
-       });
+    try {
+      console.log('🗑️ Attempting to delete archive with slug:', projectSlug);
 
-       console.log('📡 Delete response status:', response.status);
+      const response = await fetch(`/api/archive?slug=${projectSlug}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
 
-       if (response.ok) {
-         await refreshArchiveData();
-         toast.success('Archive entry deleted successfully!');
-       } else {
-         const errorData = await response.json();
-         console.error('❌ Delete failed:', response.status, errorData);
-         toast.error(`Failed to delete archive entry: ${errorData.error || 'Unknown error'}`);
-       }
-     } catch (error) {
-       console.error('💥 Error deleting archive entry:', error);
-       toast.error('An error occurred while deleting the archive entry');
-     }
-   };
+      console.log('📡 Delete response status:', response.status);
+
+      if (response.ok) {
+        await refreshArchiveData();
+        toast.success('Archive entry deleted successfully!');
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Delete failed:', response.status, errorData);
+        toast.error(`Failed to delete archive entry: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('💥 Error deleting archive entry:', error);
+      toast.error('An error occurred while deleting the archive entry');
+    }
+  };
 
   const handleAdd = () => {
     setEditingProject(null);
@@ -605,53 +596,51 @@ export default function ArchivePageClient({ initialData = [] }) {
       external: '',
       ios: '',
       android: '',
-      content: ''
+      content: '',
     });
   };
 
-     const refreshArchiveData = async () => {
-     try {
-       setIsRefreshing(true);
-       console.log('🔍 Fetching archive data from API...');
-       
-       const response = await fetch('/api/archive');
-       console.log('📡 API Response status:', response.status);
-       
-       if (response.ok) {
-         const data = await response.json();
-         console.log('📊 Raw API response:', data);
-         console.log('📋 Data structure check:', {
-           hasData: !!data,
-           isArray: Array.isArray(data),
-           hasProjects: data && Array.isArray(data.projects),
-           projectsLength: data?.projects?.length || 0,
-           dataKeys: data ? Object.keys(data) : []
-         });
-         
-         // Ensure we always set an array, even if the API response is unexpected
-         if (data && Array.isArray(data.projects)) {
-           console.log('✅ Setting archive data from data.projects:', data.projects);
-           setArchiveData(data.projects);
-         } else if (data && Array.isArray(data)) {
-           console.log('⚠️ Setting archive data from data array directly:', data);
-           setArchiveData(data);
-         } else {
-           console.warn('❌ Unexpected API response structure:', data);
-           setArchiveData([]);
-         }
-       } else {
-         console.error('❌ API response not ok:', response.status);
-         setArchiveData([]);
-       }
-     } catch (error) {
-       console.error('💥 Error refreshing archive data:', error);
-       setArchiveData([]);
-     } finally {
-       setIsRefreshing(false);
-     }
-   };
+  const refreshArchiveData = async () => {
+    try {
+      setIsRefreshing(true);
+      console.log('🔍 Fetching archive data from API...');
 
-  
+      const response = await fetch('/api/archive');
+      console.log('📡 API Response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📊 Raw API response:', data);
+        console.log('📋 Data structure check:', {
+          hasData: !!data,
+          isArray: Array.isArray(data),
+          hasProjects: data && Array.isArray(data.projects),
+          projectsLength: data?.projects?.length || 0,
+          dataKeys: data ? Object.keys(data) : [],
+        });
+
+        // Ensure we always set an array, even if the API response is unexpected
+        if (data && Array.isArray(data.projects)) {
+          console.log('✅ Setting archive data from data.projects:', data.projects);
+          setArchiveData(data.projects);
+        } else if (data && Array.isArray(data)) {
+          console.log('⚠️ Setting archive data from data array directly:', data);
+          setArchiveData(data);
+        } else {
+          console.warn('❌ Unexpected API response structure:', data);
+          setArchiveData([]);
+        }
+      } else {
+        console.error('❌ API response not ok:', response.status);
+        setArchiveData([]);
+      }
+    } catch (error) {
+      console.error('💥 Error refreshing archive data:', error);
+      setArchiveData([]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <main>
@@ -673,36 +662,36 @@ export default function ArchivePageClient({ initialData = [] }) {
         </div>
       )}
 
-             {!isLoading && isAdmin && editMode && (
-         <div className="admin-controls">
-           <button className="add-button" onClick={handleAdd}>
-             Add New Archive Entry
-           </button>
-           <button 
-             className="add-button" 
-             onClick={() => {
-               console.log('🧹 Force clearing archive data...');
-               setArchiveData([]);
-               refreshArchiveData();
-             }}
-             style={{ background: 'var(--light-slate)', color: 'var(--navy)' }}
-           >
-             🔄 Force Refresh
-           </button>
-           <button 
-             className="add-button" 
-             onClick={() => {
-               console.log('🗑️ Clearing all archive data...');
-               setArchiveData([]);
-               localStorage.removeItem('archiveData');
-               sessionStorage.removeItem('archiveData');
-             }}
-             style={{ background: '#ff6b6b', color: 'white' }}
-           >
-             🗑️ Clear All Data
-           </button>
-         </div>
-       )}
+      {!isLoading && isAdmin && editMode && (
+        <div className="admin-controls">
+          <button className="add-button" onClick={handleAdd}>
+            Add New Archive Entry
+          </button>
+          <button
+            className="add-button"
+            onClick={() => {
+              console.log('🧹 Force clearing archive data...');
+              setArchiveData([]);
+              refreshArchiveData();
+            }}
+            style={{ background: 'var(--light-slate)', color: 'var(--navy)' }}
+          >
+            🔄 Force Refresh
+          </button>
+          <button
+            className="add-button"
+            onClick={() => {
+              console.log('🗑️ Clearing all archive data...');
+              setArchiveData([]);
+              localStorage.removeItem('archiveData');
+              sessionStorage.removeItem('archiveData');
+            }}
+            style={{ background: '#ff6b6b', color: 'white' }}
+          >
+            🗑️ Clear All Data
+          </button>
+        </div>
+      )}
 
       {!isLoading && !isAdmin && (
         <div style={{ textAlign: 'center', padding: '20px', color: 'var(--light-slate)' }}>
@@ -724,30 +713,22 @@ export default function ArchivePageClient({ initialData = [] }) {
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(archiveData) && archiveData.length > 0 &&
+            {Array.isArray(archiveData) &&
+              archiveData.length > 0 &&
               archiveData.map((project, i) => {
-                const {
-                  date,
-                  github,
-                  external,
-                  ios,
-                  android,
-                  title,
-                  tech,
-                  company,
-                  slug,
-                } = project;
-                
+                const { date, github, external, ios, android, title, tech, company, slug } =
+                  project;
+
                 // Debug logging for tech data
                 console.log(`Project ${i}:`, { title, tech, techLength: tech?.length });
-                
+
                 return (
                   <tr key={i} ref={el => (revealProjects.current[i] = el)}>
-                                         <td className="overline year">
-                       {date ? `${new Date(date).getFullYear()}` : '—'}
-                     </td>
+                    <td className="overline year">
+                      {date ? `${new Date(date).getFullYear()}` : '—'}
+                    </td>
 
-                                         <td className="title">{formatTextWithBackticks(title)}</td>
+                    <td className="title">{formatTextWithBackticks(title)}</td>
 
                     <td className="company hide-on-mobile">
                       {company ? <span>{company}</span> : <span>—</span>}
@@ -796,7 +777,9 @@ export default function ArchivePageClient({ initialData = [] }) {
                       <td className="admin-controls-cell">
                         <div className="admin-row-controls">
                           <button onClick={() => handleEdit(project)}>Edit</button>
-                          <button className="delete" onClick={() => handleDelete(slug)}>Delete</button>
+                          <button className="delete" onClick={() => handleDelete(slug)}>
+                            Delete
+                          </button>
                         </div>
                       </td>
                     )}
@@ -805,30 +788,31 @@ export default function ArchivePageClient({ initialData = [] }) {
               })}
           </tbody>
         </table>
-        
+
         {/* Show message when no archive data */}
         {Array.isArray(archiveData) && archiveData.length === 0 && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px', 
-            color: 'var(--light-slate)',
-            gridColumn: '1 / -1'
-          }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '40px',
+              color: 'var(--light-slate)',
+              gridColumn: '1 / -1',
+            }}
+          >
             <h3 style={{ marginBottom: '20px', color: 'var(--lightest-slate)' }}>
               No Archive Entries Yet
             </h3>
             <p style={{ marginBottom: '20px' }}>
-              {isAdmin && editMode 
-                ? 'Start building your archive by adding your first entry!' 
-                : 'Check back later for more projects!'
-              }
+              {isAdmin && editMode
+                ? 'Start building your archive by adding your first entry!'
+                : 'Check back later for more projects!'}
             </p>
           </div>
         )}
       </StyledTableContainer>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>{editingProject ? 'Edit Archive Entry' : 'Add New Archive Entry'}</h3>
             <form onSubmit={handleSubmit}>
@@ -875,7 +859,9 @@ export default function ArchivePageClient({ initialData = [] }) {
                   {formData.tech.map((tech, index) => (
                     <div key={index} className="tech-tag">
                       {tech}
-                      <button type="button" onClick={() => removeTech(index)}>×</button>
+                      <button type="button" onClick={() => removeTech(index)}>
+                        ×
+                      </button>
                     </div>
                   ))}
                   <div className="add-tech">
@@ -885,8 +871,8 @@ export default function ArchivePageClient({ initialData = [] }) {
                       onKeyDown={handleTechChange}
                       id="tech-input"
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => {
                         const input = document.getElementById('tech-input');
                         if (input && input.value.trim()) {
@@ -894,7 +880,7 @@ export default function ArchivePageClient({ initialData = [] }) {
                           if (newTech && !formData.tech.includes(newTech)) {
                             setFormData(prev => ({
                               ...prev,
-                              tech: [...prev.tech, newTech]
+                              tech: [...prev.tech, newTech],
                             }));
                             input.value = '';
                           }
@@ -908,13 +894,19 @@ export default function ArchivePageClient({ initialData = [] }) {
                         borderRadius: '4px',
                         cursor: 'pointer',
                         fontSize: 'var(--fz-xs)',
-                        fontWeight: '600'
+                        fontWeight: '600',
                       }}
                     >
                       Add
                     </button>
                   </div>
-                  <div style={{ fontSize: 'var(--fz-xs)', color: 'var(--light-slate)', marginTop: '5px' }}>
+                  <div
+                    style={{
+                      fontSize: 'var(--fz-xs)',
+                      color: 'var(--light-slate)',
+                      marginTop: '5px',
+                    }}
+                  >
                     Press Enter or click Add button to add technology
                   </div>
                 </div>
@@ -983,9 +975,9 @@ export default function ArchivePageClient({ initialData = [] }) {
                 <button type="button" className="cancel" onClick={() => setIsModalOpen(false)}>
                   Cancel
                 </button>
-                                 <button type="submit" className="save" disabled={isSubmitting}>
-                   {isSubmitting ? 'Saving...' : (editingProject ? 'Update' : 'Create') + ' Entry'}
-                 </button>
+                <button type="submit" className="save" disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : (editingProject ? 'Update' : 'Create') + ' Entry'}
+                </button>
               </div>
             </form>
           </div>

@@ -324,7 +324,7 @@ const StyledProject = styled.li`
 const Featured = ({ data = [] }) => {
   const { isAdmin, editMode } = useAuth();
   const { featuredProjects, isLoading, error, refreshData } = useProjects(data);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -336,7 +336,7 @@ const Featured = ({ data = [] }) => {
     tech: '',
     image: { url: '', alt: '' },
     featured: true,
-    showInProjects: false
+    showInProjects: false,
   });
 
   // Use featured projects from hook, no dummy data fallback
@@ -346,7 +346,7 @@ const Featured = ({ data = [] }) => {
   const revealProjects = useRef([]);
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  const handleEdit = (project) => {
+  const handleEdit = project => {
     setEditingProject(project);
     setFormData({
       title: project.title || '',
@@ -356,13 +356,13 @@ const Featured = ({ data = [] }) => {
       tech: Array.isArray(project.tech) ? project.tech.join(', ') : project.tech || '',
       image: project.image || { url: '', alt: '' },
       featured: project.featured || true,
-      showInProjects: project.showInProjects || false
+      showInProjects: project.showInProjects || false,
     });
     setIsEditing(true);
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (projectId) => {
+  const handleDelete = async projectId => {
     if (!confirm('Are you sure you want to delete this featured project?')) {
       return;
     }
@@ -377,15 +377,15 @@ const Featured = ({ data = [] }) => {
       const response = await fetch(`/api/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const result = await response.json();
 
       if (response.ok) {
         toast.success('Featured project deleted successfully!');
-        
+
         // Refresh data
         refreshData();
       } else {
@@ -398,7 +398,7 @@ const Featured = ({ data = [] }) => {
     }
   };
 
-  const handleToggleFeatured = async (project) => {
+  const handleToggleFeatured = async project => {
     try {
       const token = localStorage.getItem('adminToken');
       if (!token) {
@@ -409,23 +409,23 @@ const Featured = ({ data = [] }) => {
       const updatedData = {
         ...project,
         featured: false, // Remove from featured
-        showInProjects: true // Add to regular projects
+        showInProjects: true, // Add to regular projects
       };
 
       const response = await fetch(`/api/projects/${project._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify(updatedData),
       });
 
       const result = await response.json();
 
       if (response.ok) {
         toast.success('Project moved to regular projects!');
-        
+
         // Refresh data
         refreshData();
       } else {
@@ -438,9 +438,9 @@ const Featured = ({ data = [] }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.description) {
       toast.error('Title and description are required');
       return;
@@ -455,13 +455,18 @@ const Featured = ({ data = [] }) => {
 
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       };
 
       // Process tech array from comma-separated string
       const processedData = {
         ...formData,
-        tech: formData.tech ? formData.tech.split(',').map(t => t.trim()).filter(t => t) : []
+        tech: formData.tech
+          ? formData.tech
+              .split(',')
+              .map(t => t.trim())
+              .filter(t => t)
+          : [],
       };
 
       let response;
@@ -470,25 +475,29 @@ const Featured = ({ data = [] }) => {
         response = await fetch(`/api/projects/${editingProject._id}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify(processedData)
+          body: JSON.stringify(processedData),
         });
       } else {
         // Create new project
         response = await fetch('/api/projects', {
           method: 'POST',
           headers,
-          body: JSON.stringify(processedData)
+          body: JSON.stringify(processedData),
         });
       }
 
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(isEditing ? 'Featured project updated successfully!' : 'Featured project created successfully!');
-        
+        toast.success(
+          isEditing
+            ? 'Featured project updated successfully!'
+            : 'Featured project created successfully!'
+        );
+
         // Refresh data
         refreshData();
-        
+
         // Reset form and close modal
         setFormData({
           title: '',
@@ -498,7 +507,7 @@ const Featured = ({ data = [] }) => {
           tech: '',
           image: { url: '', alt: '' },
           featured: true,
-          showInProjects: false
+          showInProjects: false,
         });
         setIsModalOpen(false);
         setIsEditing(false);
@@ -513,15 +522,15 @@ const Featured = ({ data = [] }) => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleImageUpload = async (file) => {
+  const handleImageUpload = async file => {
     if (!file) return;
 
     try {
@@ -531,9 +540,9 @@ const Featured = ({ data = [] }) => {
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
-        body: formData
+        body: formData,
       });
 
       const result = await response.json();
@@ -544,8 +553,8 @@ const Featured = ({ data = [] }) => {
           image: {
             url: result.url,
             publicId: result.publicId,
-            alt: prev.image.alt || file.name
-          }
+            alt: prev.image.alt || file.name,
+          },
         }));
         toast.success('Image uploaded successfully!');
       } else {
@@ -560,7 +569,7 @@ const Featured = ({ data = [] }) => {
   const removeImage = () => {
     setFormData(prev => ({
       ...prev,
-      image: { url: '', alt: '', publicId: '' }
+      image: { url: '', alt: '', publicId: '' },
     }));
   };
 
@@ -573,7 +582,7 @@ const Featured = ({ data = [] }) => {
       tech: '',
       image: { url: '', alt: '' },
       featured: true,
-      showInProjects: false
+      showInProjects: false,
     });
     setIsEditing(false);
     setEditingProject(null);
@@ -622,7 +631,7 @@ const Featured = ({ data = [] }) => {
                 fontSize: '16px',
                 cursor: 'pointer',
                 fontWeight: '600',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
               }}
             >
               Add New Featured Project
@@ -632,21 +641,25 @@ const Featured = ({ data = [] }) => {
 
         <StyledProjectsGrid>
           {isLoading ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px',
-              color: 'var(--light-slate)',
-              gridColumn: '1 / -1'
-            }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '40px',
+                color: 'var(--light-slate)',
+                gridColumn: '1 / -1',
+              }}
+            >
               Loading featured projects...
             </div>
           ) : error ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px',
-              color: '#ff6b6b',
-              gridColumn: '1 / -1'
-            }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '40px',
+                color: '#ff6b6b',
+                gridColumn: '1 / -1',
+              }}
+            >
               Error loading featured projects: {error}
             </div>
           ) : displayProjects && displayProjects.length > 0 ? (
@@ -660,14 +673,16 @@ const Featured = ({ data = [] }) => {
                       <p className="project-overline">Featured Project</p>
 
                       {isAdmin && editMode && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          display: 'flex',
-                          gap: '5px',
-                          zIndex: 10
-                        }}>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            display: 'flex',
+                            gap: '5px',
+                            zIndex: 10,
+                          }}
+                        >
                           <button
                             onClick={() => handleEdit(project)}
                             style={{
@@ -678,7 +693,7 @@ const Featured = ({ data = [] }) => {
                               padding: '4px 8px',
                               fontSize: '12px',
                               cursor: 'pointer',
-                              fontWeight: '600'
+                              fontWeight: '600',
                             }}
                           >
                             Edit
@@ -693,7 +708,7 @@ const Featured = ({ data = [] }) => {
                               padding: '4px 8px',
                               fontSize: '12px',
                               cursor: 'pointer',
-                              fontWeight: '600'
+                              fontWeight: '600',
                             }}
                           >
                             Delete
@@ -708,7 +723,7 @@ const Featured = ({ data = [] }) => {
                               padding: '4px 8px',
                               fontSize: '12px',
                               cursor: 'pointer',
-                              fontWeight: '600'
+                              fontWeight: '600',
                             }}
                           >
                             Move to Regular
@@ -752,12 +767,16 @@ const Featured = ({ data = [] }) => {
                   <div className="project-image">
                     <a href={external ? external : github ? github : '#'}>
                       {image && image.url ? (
-                        <img 
-                          src={image.url} 
-                          alt={image.alt || title} 
+                        <img
+                          src={image.url}
+                          alt={image.alt || title}
                           className="img"
-                          style={{ width: '100%', height: 'auto', borderRadius: 'var(--border-radius)' }}
-                          onError={(e) => {
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            borderRadius: 'var(--border-radius)',
+                          }}
+                          onError={e => {
                             // Fallback to a placeholder if image fails to load
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'block';
@@ -765,7 +784,7 @@ const Featured = ({ data = [] }) => {
                         />
                       ) : null}
                       {/* Fallback placeholder */}
-                      <div 
+                      <div
                         style={{
                           display: image && image.url ? 'none' : 'flex',
                           width: '100%',
@@ -776,7 +795,7 @@ const Featured = ({ data = [] }) => {
                           justifyContent: 'center',
                           color: 'var(--light-slate)',
                           fontSize: 'var(--fz-sm)',
-                          fontFamily: 'var(--font-mono)'
+                          fontFamily: 'var(--font-mono)',
                         }}
                       >
                         {title} Preview
@@ -787,12 +806,14 @@ const Featured = ({ data = [] }) => {
               );
             })
           ) : (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px',
-              color: 'var(--light-slate)',
-              gridColumn: '1 / -1'
-            }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '40px',
+                color: 'var(--light-slate)',
+                gridColumn: '1 / -1',
+              }}
+            >
               <h3 style={{ marginBottom: '20px', color: 'var(--lightest-slate)' }}>
                 No Featured Projects Yet
               </h3>
@@ -810,7 +831,7 @@ const Featured = ({ data = [] }) => {
                     padding: '12px 24px',
                     fontSize: '16px',
                     cursor: 'pointer',
-                    fontWeight: '600'
+                    fontWeight: '600',
                   }}
                 >
                   Add Your First Featured Project
@@ -823,34 +844,40 @@ const Featured = ({ data = [] }) => {
 
       {/* Modal for adding/editing featured projects */}
       {isModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'var(--navy)',
-            padding: '30px',
-            borderRadius: '8px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            border: '1px solid var(--lightest-navy)'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'var(--navy)',
+              padding: '30px',
+              borderRadius: '8px',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              border: '1px solid var(--lightest-navy)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+              }}
+            >
               <h3 style={{ color: 'var(--lightest-slate)', margin: 0 }}>
                 {isEditing ? 'Edit Featured Project' : 'Add New Featured Project'}
               </h3>
@@ -864,7 +891,7 @@ const Featured = ({ data = [] }) => {
                   border: 'none',
                   color: 'var(--light-slate)',
                   fontSize: '24px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 ×
@@ -873,7 +900,10 @@ const Featured = ({ data = [] }) => {
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="title" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="title"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Project Title *
                 </label>
                 <input
@@ -889,13 +919,16 @@ const Featured = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="description" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="description"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Description *
                 </label>
                 <textarea
@@ -912,15 +945,16 @@ const Featured = ({ data = [] }) => {
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
                     color: 'var(--lightest-slate)',
-                    resize: 'vertical'
+                    resize: 'vertical',
                   }}
                 />
               </div>
 
-
-
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="github" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="github"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   GitHub URL
                 </label>
                 <input
@@ -935,13 +969,16 @@ const Featured = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="external" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="external"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   External URL
                 </label>
                 <input
@@ -956,13 +993,16 @@ const Featured = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="tech" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="tech"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Technologies (comma-separated)
                 </label>
                 <input
@@ -978,41 +1018,48 @@ const Featured = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="project-image-featured" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="project-image-featured"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Project Image (Featured Projects Only)
                 </label>
-                <div style={{ 
-                  fontSize: 'var(--fz-xs)', 
-                  color: 'var(--slate)', 
-                  marginBottom: '10px',
-                  fontStyle: 'italic'
-                }}>
+                <div
+                  style={{
+                    fontSize: 'var(--fz-xs)',
+                    color: 'var(--slate)',
+                    marginBottom: '10px',
+                    fontStyle: 'italic',
+                  }}
+                >
                   Images are required for featured projects to make them stand out.
                 </div>
                 {formData.image.url ? (
                   <div style={{ marginBottom: '10px' }}>
-                    <img 
-                      src={formData.image.url} 
-                      alt="Project preview" 
-                      style={{ 
-                        width: '100%', 
-                        height: '150px', 
-                        objectFit: 'cover', 
+                    <img
+                      src={formData.image.url}
+                      alt="Project preview"
+                      style={{
+                        width: '100%',
+                        height: '150px',
+                        objectFit: 'cover',
                         borderRadius: '4px',
-                        border: '1px solid var(--lightest-navy)'
-                      }} 
+                        border: '1px solid var(--lightest-navy)',
+                      }}
                     />
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: '10px', 
-                      marginTop: '10px' 
-                    }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        marginTop: '10px',
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={removeImage}
@@ -1023,7 +1070,7 @@ const Featured = ({ data = [] }) => {
                           borderRadius: '4px',
                           padding: '8px 12px',
                           cursor: 'pointer',
-                          fontSize: '12px'
+                          fontSize: '12px',
                         }}
                       >
                         Remove Image
@@ -1031,19 +1078,21 @@ const Featured = ({ data = [] }) => {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ 
-                    border: '2px dashed var(--lightest-navy)', 
-                    borderRadius: '4px', 
-                    padding: '20px', 
-                    textAlign: 'center',
-                    background: 'var(--light-navy)'
-                  }}>
-                    <label 
+                  <div
+                    style={{
+                      border: '2px dashed var(--lightest-navy)',
+                      borderRadius: '4px',
+                      padding: '20px',
+                      textAlign: 'center',
+                      background: 'var(--light-navy)',
+                    }}
+                  >
+                    <label
                       htmlFor="image-upload-featured"
-                      style={{ 
+                      style={{
                         cursor: 'pointer',
                         color: 'var(--green)',
-                        fontWeight: '600'
+                        fontWeight: '600',
                       }}
                     >
                       Click to upload image
@@ -1052,7 +1101,7 @@ const Featured = ({ data = [] }) => {
                       id="image-upload-featured"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleImageUpload(e.target.files[0])}
+                      onChange={e => handleImageUpload(e.target.files[0])}
                       style={{ display: 'none' }}
                     />
                   </div>
@@ -1060,7 +1109,10 @@ const Featured = ({ data = [] }) => {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label htmlFor="imageAlt" style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}>
+                <label
+                  htmlFor="imageAlt"
+                  style={{ display: 'block', marginBottom: '5px', color: 'var(--lightest-slate)' }}
+                >
                   Image Alt Text
                 </label>
                 <input
@@ -1068,10 +1120,12 @@ const Featured = ({ data = [] }) => {
                   id="imageAlt"
                   name="imageAlt"
                   value={formData.image.alt}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    image: { ...prev.image, alt: e.target.value }
-                  }))}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      image: { ...prev.image, alt: e.target.value },
+                    }))
+                  }
                   placeholder="Description of the image for accessibility"
                   style={{
                     width: '100%',
@@ -1079,17 +1133,19 @@ const Featured = ({ data = [] }) => {
                     border: '1px solid var(--lightest-navy)',
                     borderRadius: '4px',
                     backgroundColor: 'var(--light-navy)',
-                    color: 'var(--lightest-slate)'
+                    color: 'var(--lightest-slate)',
                   }}
                 />
               </div>
 
-              <div style={{ 
-                display: 'flex', 
-                gap: '10px', 
-                justifyContent: 'flex-end',
-                marginTop: '20px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  justifyContent: 'flex-end',
+                  marginTop: '20px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -1102,7 +1158,7 @@ const Featured = ({ data = [] }) => {
                     border: 'none',
                     borderRadius: '4px',
                     padding: '10px 20px',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
                   }}
                 >
                   Cancel
@@ -1116,7 +1172,7 @@ const Featured = ({ data = [] }) => {
                     borderRadius: '4px',
                     padding: '10px 20px',
                     cursor: 'pointer',
-                    fontWeight: '600'
+                    fontWeight: '600',
                   }}
                 >
                   {isEditing ? 'Update Project' : 'Create Project'}
@@ -1132,7 +1188,7 @@ const Featured = ({ data = [] }) => {
 
 Featured.propTypes = {
   data: PropTypes.array,
-  onDataChange: PropTypes.func
+  onDataChange: PropTypes.func,
 };
 
 export default Featured;

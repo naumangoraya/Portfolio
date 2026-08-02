@@ -13,11 +13,11 @@ import toast from 'react-hot-toast';
 // Helper function to get adjustable image URL
 const getAdjustableImageUrl = (url, width = 380, height = 380, crop = 'fill') => {
   if (!url || !url.includes('cloudinary.com')) return url;
-  
+
   // If it's a Cloudinary URL, add transformation parameters
   const baseUrl = url.split('/upload/')[0] + '/upload/';
   const publicId = url.split('/upload/')[1];
-  
+
   return `${baseUrl}c_fill,w_${width},h_${height},q_auto/${publicId}`;
 };
 
@@ -178,7 +178,8 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea {
+      input,
+      textarea {
         width: 100%;
         padding: 10px;
         background: var(--light-navy);
@@ -302,19 +303,32 @@ const EditableAbout = ({ data, onUpdate }) => {
     skills: [],
     image: {
       url: '',
-      alt: ''
+      alt: '',
     },
-    order: 0
+    order: 0,
   });
   const [newSkill, setNewSkill] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
   // Use dynamic data or fallback to defaults
-  const title = aboutData?.title || "About Me";
-  const description = aboutData?.description || "I'm a software engineer who specializes in building (and occasionally designing) exceptional digital experiences.\n\nCurrently, I'm an engineer at `Upstatement` focused on building accessible, inclusive products and digital experiences for a variety of clients.\n\nMy journey into web development started back in 2012 when I decided to try editing custom Tumblr themes — turns out hacking together a custom reblog button taught me a lot about `HTML` & `CSS`!\n\nFast-forward to today, and I've had the privilege of building software for `an advertising agency`, `a start-up`, `a huge corporation`, and `a student-led design studio`.\n\nI also recently launched a course that covers everything you need to build a web app with the `Spotify API` using `Node.js`, `React`, and more.\n\nHere are a few technologies I've been working with recently:\n\n`JavaScript (ES6+)`\n`TypeScript`\n`React`\n`Eleventy`\n`Node.js`\n`WordPress`";
-  const skills = aboutData?.skills?.map(skill => skill.name) || ['JavaScript (ES6+)', 'Python', 'React', 'Node.js', 'Machine Learning', 'Deep Learning', 'Data Science', 'Generative AI', 'RAGs', 'Automation'];
-  const imageUrl = aboutData?.image?.url || "/images/me.jpg";
-  const imageAlt = aboutData?.image?.alt || "Headshot";
+  const title = aboutData?.title || 'About Me';
+  const description =
+    aboutData?.description ||
+    "I'm a software engineer who specializes in building (and occasionally designing) exceptional digital experiences.\n\nCurrently, I'm an engineer at `Upstatement` focused on building accessible, inclusive products and digital experiences for a variety of clients.\n\nMy journey into web development started back in 2012 when I decided to try editing custom Tumblr themes — turns out hacking together a custom reblog button taught me a lot about `HTML` & `CSS`!\n\nFast-forward to today, and I've had the privilege of building software for `an advertising agency`, `a start-up`, `a huge corporation`, and `a student-led design studio`.\n\nI also recently launched a course that covers everything you need to build a web app with the `Spotify API` using `Node.js`, `React`, and more.\n\nHere are a few technologies I've been working with recently:\n\n`JavaScript (ES6+)`\n`TypeScript`\n`React`\n`Eleventy`\n`Node.js`\n`WordPress`";
+  const skills = aboutData?.skills?.map(skill => skill.name) || [
+    'JavaScript (ES6+)',
+    'Python',
+    'React',
+    'Node.js',
+    'Machine Learning',
+    'Deep Learning',
+    'Data Science',
+    'Generative AI',
+    'RAGs',
+    'Automation',
+  ];
+  const imageUrl = aboutData?.image?.url || '/images/me.jpg';
+  const imageAlt = aboutData?.image?.alt || 'Headshot';
 
   useEffect(() => {
     setAboutData(data);
@@ -327,7 +341,7 @@ const EditableAbout = ({ data, onUpdate }) => {
         description: aboutData.description || '',
         skills: aboutData.skills || [],
         image: aboutData.image || { url: '', alt: '' },
-        order: aboutData.order || 0
+        order: aboutData.order || 0,
       });
     }
   }, [aboutData]);
@@ -340,23 +354,23 @@ const EditableAbout = ({ data, onUpdate }) => {
     sr.reveal(revealContainer.current, srConfig());
   }, [prefersReducedMotion]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     try {
       const response = await fetch('/api/about', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
         body: JSON.stringify(formData),
       });
@@ -384,7 +398,7 @@ const EditableAbout = ({ data, onUpdate }) => {
       description: aboutData?.description || '',
       skills: aboutData?.skills || [],
       image: aboutData?.image || { url: '', alt: '' },
-      order: aboutData?.order || 0
+      order: aboutData?.order || 0,
     });
     setIsModalOpen(true);
   };
@@ -393,20 +407,20 @@ const EditableAbout = ({ data, onUpdate }) => {
     if (newSkill.trim() && !formData.skills.find(s => s.name === newSkill.trim())) {
       setFormData(prev => ({
         ...prev,
-        skills: [...prev.skills, { name: newSkill.trim() }]
+        skills: [...prev.skills, { name: newSkill.trim() }],
       }));
       setNewSkill('');
     }
   };
 
-  const removeSkill = (skillName) => {
+  const removeSkill = skillName => {
     setFormData(prev => ({
       ...prev,
-      skills: prev.skills.filter(s => s.name !== skillName)
+      skills: prev.skills.filter(s => s.name !== skillName),
     }));
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUpload = async event => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -418,7 +432,7 @@ const EditableAbout = ({ data, onUpdate }) => {
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
         body: formData,
       });
@@ -429,8 +443,8 @@ const EditableAbout = ({ data, onUpdate }) => {
           ...prev,
           image: {
             url: result.url,
-            alt: prev.image.alt || 'Profile Image'
-          }
+            alt: prev.image.alt || 'Profile Image',
+          },
         }));
         toast.success('Image uploaded successfully!');
       } else {
@@ -445,9 +459,9 @@ const EditableAbout = ({ data, onUpdate }) => {
   };
 
   // Function to format description with line breaks and green backtick highlighting
-  const formatDescription = (text) => {
+  const formatDescription = text => {
     if (!text) return '';
-    
+
     // Split by line breaks and format each paragraph
     const paragraphs = text.split('\n');
     return paragraphs.map((paragraph, index) => (
@@ -478,27 +492,25 @@ const EditableAbout = ({ data, onUpdate }) => {
             </div>
 
             <ul className="skills-list">
-              {skills && skills.map((skill, i) => (
-                <li key={i}>{skill}</li>
-              ))}
+              {skills && skills.map((skill, i) => <li key={i}>{skill}</li>)}
             </ul>
           </StyledText>
 
-                     <StyledPic>
-             <div className="wrapper">
-               <img
-                 className="img"
-                 src={getAdjustableImageUrl(imageUrl, 380, 380, 'fill')}
-                 alt={imageAlt}
-                 style={{ objectFit: 'cover' }}
-               />
-             </div>
-           </StyledPic>
+          <StyledPic>
+            <div className="wrapper">
+              <img
+                className="img"
+                src={getAdjustableImageUrl(imageUrl, 380, 380, 'fill')}
+                alt={imageAlt}
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+          </StyledPic>
         </div>
       </StyledAboutSection>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>Edit About Section</h3>
             <form onSubmit={handleSubmit}>
@@ -525,7 +537,8 @@ const EditableAbout = ({ data, onUpdate }) => {
                   rows="8"
                 />
                 <small style={{ color: 'var(--slate)', fontSize: '12px', marginTop: '5px' }}>
-                  Use line breaks (Enter key) to create paragraphs. Wrap important terms in backticks `like this` to highlight them in green.
+                  Use line breaks (Enter key) to create paragraphs. Wrap important terms in
+                  backticks `like this` to highlight them in green.
                 </small>
               </div>
 
@@ -537,9 +550,9 @@ const EditableAbout = ({ data, onUpdate }) => {
                       type="text"
                       id="skills"
                       value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
+                      onChange={e => setNewSkill(e.target.value)}
                       placeholder="Add new skill"
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                      onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                     />
                     <button type="button" className="add-skill" onClick={addSkill}>
                       Add Skill
@@ -574,15 +587,15 @@ const EditableAbout = ({ data, onUpdate }) => {
                   />
                   {isUploading && <span style={{ color: 'var(--green)' }}>Uploading...</span>}
                 </div>
-                                 {formData.image.url && (
-                   <div style={{ marginTop: '10px' }}>
-                     <img
-                       src={getAdjustableImageUrl(formData.image.url, 100, 100, 'fill')}
-                       alt="Preview"
-                       style={{ borderRadius: '4px', width: '100px', height: '100px' }}
-                     />
-                   </div>
-                 )}
+                {formData.image.url && (
+                  <div style={{ marginTop: '10px' }}>
+                    <img
+                      src={getAdjustableImageUrl(formData.image.url, 100, 100, 'fill')}
+                      alt="Preview"
+                      style={{ borderRadius: '4px', width: '100px', height: '100px' }}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -614,7 +627,7 @@ const EditableAbout = ({ data, onUpdate }) => {
 
 EditableAbout.propTypes = {
   data: PropTypes.object,
-  onUpdate: PropTypes.func
+  onUpdate: PropTypes.func,
 };
 
 export default EditableAbout;

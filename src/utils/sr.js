@@ -10,5 +10,5 @@ export default {
     if (isSSR) return;
     // No-op: ScrollReveal removed, but keeping API compatible
   },
-  isReady: () => true // Always ready since we're not using ScrollReveal
+  isReady: () => true, // Always ready since we're not using ScrollReveal
 };

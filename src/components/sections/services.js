@@ -143,7 +143,7 @@ const StyledServicesSection = styled.section`
     text-align: center;
     color: var(--slate);
     padding: 80px 20px;
-    
+
     .icon {
       font-size: 4em;
       margin-bottom: 25px;
@@ -219,7 +219,9 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea, select {
+      input,
+      textarea,
+      select {
         width: 100%;
         padding: 10px;
         background: var(--light-navy);
@@ -244,7 +246,7 @@ const StyledModal = styled.div`
         align-items: center;
         gap: 10px;
 
-        input[type="checkbox"] {
+        input[type='checkbox'] {
           width: auto;
         }
       }
@@ -289,7 +291,7 @@ const Services = ({ data = [] }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    shortDescription: ''
+    shortDescription: '',
   });
 
   const { isAdmin, editMode } = useAuth();
@@ -297,7 +299,7 @@ const Services = ({ data = [] }) => {
   const prefersReducedMotion = usePrefersReducedMotion();
 
   // Function to format text and highlight backtick-wrapped content
-  const formatText = (text) => {
+  const formatText = text => {
     if (!text) return '';
     return formatTextWithBackticks(text);
   };
@@ -306,49 +308,54 @@ const Services = ({ data = [] }) => {
   const dummyServices = [
     {
       _id: 'dummy1',
-      title: "`Web Development`",
-      shortDescription: "Full-stack `web development` with modern technologies. Building responsive, performant applications that deliver exceptional user experiences.",
-      icon: "",
+      title: '`Web Development`',
+      shortDescription:
+        'Full-stack `web development` with modern technologies. Building responsive, performant applications that deliver exceptional user experiences.',
+      icon: '',
       isFeatured: false,
-      category: "",
-      features: []
+      category: '',
+      features: [],
     },
     {
       _id: 'dummy2',
-      title: "`AI & Machine Learning`",
-      shortDescription: "Designing and implementing intelligent systems using cutting-edge `AI/ML` technologies. From data preprocessing to model deployment.",
-      icon: "",
+      title: '`AI & Machine Learning`',
+      shortDescription:
+        'Designing and implementing intelligent systems using cutting-edge `AI/ML` technologies. From data preprocessing to model deployment.',
+      icon: '',
       isFeatured: false,
-      category: "",
-      features: []
+      category: '',
+      features: [],
     },
     {
       _id: 'dummy3',
-      title: "`UI/UX Design`",
-      shortDescription: "Creating intuitive and beautiful user interfaces. Focused on `user-centered design` principles and modern design systems.",
-      icon: "",
+      title: '`UI/UX Design`',
+      shortDescription:
+        'Creating intuitive and beautiful user interfaces. Focused on `user-centered design` principles and modern design systems.',
+      icon: '',
       isFeatured: false,
-      category: "",
-      features: []
+      category: '',
+      features: [],
     },
     {
       _id: 'dummy4',
-      title: "`Business Automation`",
-      shortDescription: "Streamlining business processes through intelligent `automation`. Integrating platforms and building efficient workflows.",
-      icon: "",
+      title: '`Business Automation`',
+      shortDescription:
+        'Streamlining business processes through intelligent `automation`. Integrating platforms and building efficient workflows.',
+      icon: '',
       isFeatured: false,
-      category: "",
-      features: []
+      category: '',
+      features: [],
     },
     {
       _id: 'dummy5',
-      title: "`LLM Integration`",
-      shortDescription: "Building intelligent applications powered by `Large Language Models`. Creating RAG systems, AI agents, and smart APIs.",
-      icon: "",
+      title: '`LLM Integration`',
+      shortDescription:
+        'Building intelligent applications powered by `Large Language Models`. Creating RAG systems, AI agents, and smart APIs.',
+      icon: '',
       isFeatured: false,
-      category: "",
-      features: []
-    }
+      category: '',
+      features: [],
+    },
   ];
 
   // Use dummy data if no real data is provided, otherwise use serviceData state
@@ -366,19 +373,19 @@ const Services = ({ data = [] }) => {
     sr.reveal(revealContainer.current, srConfig());
   }, [prefersReducedMotion]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     const servicePayload = {
-      ...formData
+      ...formData,
     };
 
     try {
@@ -388,14 +395,16 @@ const Services = ({ data = [] }) => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
           },
           body: JSON.stringify(servicePayload),
         });
 
         if (response.ok) {
           const updatedService = await response.json();
-          setServiceData(prev => prev.map(s => s._id === editingService._id ? updatedService.service : s));
+          setServiceData(prev =>
+            prev.map(s => (s._id === editingService._id ? updatedService.service : s))
+          );
           toast.success('Service updated successfully!');
         } else {
           toast.error('Failed to update service');
@@ -406,7 +415,7 @@ const Services = ({ data = [] }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
           },
           body: JSON.stringify(servicePayload),
         });
@@ -429,17 +438,17 @@ const Services = ({ data = [] }) => {
     }
   };
 
-  const handleEdit = (service) => {
+  const handleEdit = service => {
     setEditingService(service);
     setFormData({
       title: service.title || '',
       description: service.description || '',
-      shortDescription: service.shortDescription || ''
+      shortDescription: service.shortDescription || '',
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (serviceId) => {
+  const handleDelete = async serviceId => {
     if (!confirm('Are you sure you want to delete this service?')) {
       return;
     }
@@ -448,7 +457,7 @@ const Services = ({ data = [] }) => {
       const response = await fetch(`/api/services/${serviceId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
       });
 
@@ -474,7 +483,7 @@ const Services = ({ data = [] }) => {
     setFormData({
       title: '',
       description: '',
-      shortDescription: ''
+      shortDescription: '',
     });
   };
 
@@ -498,7 +507,9 @@ const Services = ({ data = [] }) => {
                 {isAdmin && editMode && (
                   <div className="admin-service-controls">
                     <button onClick={() => handleEdit(service)}>Edit</button>
-                    <button className="delete" onClick={() => handleDelete(service._id)}>Delete</button>
+                    <button className="delete" onClick={() => handleDelete(service._id)}>
+                      Delete
+                    </button>
                   </div>
                 )}
 
@@ -523,7 +534,7 @@ const Services = ({ data = [] }) => {
       </StyledServicesSection>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>{editingService ? 'Edit Service' : 'Add New Service'}</h3>
             <form onSubmit={handleSubmit}>
@@ -572,4 +583,4 @@ Services.propTypes = {
   data: PropTypes.array,
 };
 
-export default Services; 
+export default Services;

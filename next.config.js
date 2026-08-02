@@ -1,13 +1,14 @@
-const path = require('path');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   compiler: {
     styledComponents: true,
+    // Strip debug logging from production builds. ~55 console.log calls shipped,
+    // several in render bodies, and error/warn are the ones worth keeping.
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   images: {
-    domains: ['res.cloudinary.com'],
+    // `domains` is deprecated (removed in Next 16) — remotePatterns covers it.
     remotePatterns: [
       {
         protocol: 'https',
@@ -17,28 +18,32 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    // Handle client-side only modules
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-      };
-    }
+  // Path aliases live in jsconfig.json `compilerOptions.paths` so that the editor,
+  // webpack and Turbopack all resolve them identically. Next 16 refuses to build
+  // when a custom `webpack` key is present, so there must not be one here.
 
-    // Configure path aliases
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@components': path.resolve(__dirname, 'src/components'),
-      '@config': path.resolve(__dirname, 'src/config'),
-      '@hooks': path.resolve(__dirname, 'src/hooks'),
-      '@images': path.resolve(__dirname, 'src/images'),
-      '@styles': path.resolve(__dirname, 'src/styles'),
-      '@utils': path.resolve(__dirname, 'src/utils'),
-    };
-
-    return config;
+  // Security headers live here rather than in middleware.js on purpose: no
+  // middleware exists today, and adding one would buy a mandatory rename to
+  // proxy.js in Next 16 for no benefit.
+  //
+  // No CSP yet — styled-components needs nonce plumbing through the SSR
+  // registry, which is a real breakage risk for modest gain at this traffic.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+    ];
   },
 };
 

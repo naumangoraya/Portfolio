@@ -1,96 +1,74 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import jwt from 'jsonwebtoken';
-import dbConnect from '../../../../lib/mongodb';
-import { v2 as cloudinary } from 'cloudinary';
+import { randomUUID } from 'crypto';
+import cloudinary from '../../../../lib/cloudinary';
+import { requireAdmin } from '../../../../lib/api/requireAdmin';
+import { fail } from '../../../../lib/api/respond';
+import { handleDbError } from '../../../../lib/api/handleDbError';
+import { validateUpload, MAX_PDF_BYTES } from '../../../../lib/api/fileValidation';
 
-// Verify an admin JWT (passed via form data as `adminToken`)
-const verifyAdminToken = (token) => {
-  if (!token) {
-    return { success: false, message: 'Admin token required' };
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    if (decoded.exp < Date.now() / 1000) {
-      return { success: false, message: 'Token expired' };
-    }
-
-    if (!decoded.isAdmin) {
-      return { success: false, message: 'Insufficient permissions' };
-    }
-
-    return { success: true, user: decoded };
-  } catch (jwtError) {
-    return { success: false, message: 'Invalid token' };
-  }
-};
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(request) {
-  try {
-    // Connect to database
-    await dbConnect();
+  // Auth first. This route used to `await request.formData()` BEFORE checking
+  // the token, so any anonymous caller could force us to buffer an arbitrary
+  // payload. The token also arrived in the form body rather than a header,
+  // which is why it had to be read late; it is an Authorization header now,
+  // like every other route.
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
 
-    // Get the form data
+  try {
     const formData = await request.formData();
     const file = formData.get('resume');
-    const adminToken = formData.get('adminToken');
 
-    // Verify admin token (proper JWT verification)
-    const authResult = verifyAdminToken(adminToken);
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.message }, { status: 401 });
+    if (!file || typeof file.arrayBuffer !== 'function') {
+      return fail(400, 'VALIDATION', 'No file uploaded');
     }
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    if (file.size > MAX_PDF_BYTES) {
+      return fail(400, 'VALIDATION', 'Resume must be smaller than 5MB');
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to Cloudinary
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'raw',
-          folder: 'resumes',
-          public_id: `resume_${Date.now()}`,
-          format: 'pdf',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(buffer);
+    // Without this, anything at all was stored under a .pdf name on the CDN.
+    const check = validateUpload(buffer, {
+      allowed: ['application/pdf'],
+      maxBytes: MAX_PDF_BYTES,
+      label: 'Resume',
     });
 
-    // Store resume info in database (optional)
-    // You can create a resume collection to track uploads
+    if (!check.ok) {
+      return fail(400, 'VALIDATION', check.message);
+    }
+
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: 'raw',
+            folder: 'resumes',
+            public_id: `resume_${Date.now()}_${randomUUID().slice(0, 8)}`,
+            format: 'pdf',
+          },
+          (error, uploaded) => (error ? reject(error) : resolve(uploaded))
+        )
+        .end(buffer);
+    });
 
     revalidatePath('/');
 
     return NextResponse.json({
+      ok: true,
       success: true,
+      message: 'Resume uploaded successfully',
+      data: { resumeUrl: result.secure_url, publicId: result.public_id },
       resumeUrl: result.secure_url,
       publicId: result.public_id,
-      message: 'Resume uploaded successfully'
     });
-
   } catch (error) {
-    console.error('Resume upload error:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload resume' },
-      { status: 500 }
-    );
+    return handleDbError(error, 'resume/upload');
   }
 }

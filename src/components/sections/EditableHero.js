@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { TransitionGroup } from 'react-transition-group';
+import FadeIn from '@components/FadeIn';
 import { navDelay, loaderDelay } from '@utils';
 import { usePrefersReducedMotion } from '@hooks';
 import { useAuth } from '../../contexts/AuthContext';
@@ -50,8 +51,6 @@ const StyledHeroSection = styled.section`
     }
   }
 
-
-
   @media (max-height: 700px) and (min-width: 700px), (max-width: 360px) {
     height: auto;
     padding-top: var(--nav-height);
@@ -74,7 +73,6 @@ const StyledHeroSection = styled.section`
     /* margin-bottom: 50px; */
     color: var(--slate);
     line-height: 0.9;
-
   }
 
   p {
@@ -145,7 +143,8 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea {
+      input,
+      textarea {
         width: 100%;
         padding: 12px;
         background: var(--light-navy);
@@ -202,7 +201,7 @@ const StyledModal = styled.div`
         &.save {
           background: var(--green);
           color: var(--navy);
-          
+
           &:hover {
             background: var(--light-green);
             transform: translateY(-1px);
@@ -213,7 +212,7 @@ const StyledModal = styled.div`
         &.cancel {
           background: var(--lightest-navy);
           color: var(--lightest-slate);
-          
+
           &:hover {
             background: var(--light-navy);
             transform: translateY(-1px);
@@ -310,16 +309,16 @@ const EditableHero = ({ data, onUpdate }) => {
     ctaText: '',
     email: '',
     isActive: true,
-    order: 0
+    order: 0,
   });
 
   // Smooth scroll utility function
   const scrollToContact = () => {
     const contactSection = document.getElementById('contact');
     if (contactSection) {
-      contactSection.scrollIntoView({ 
+      contactSection.scrollIntoView({
         behavior: prefersReducedMotion ? 'auto' : 'smooth',
-        block: 'start'
+        block: 'start',
       });
     }
   };
@@ -327,18 +326,20 @@ const EditableHero = ({ data, onUpdate }) => {
   useEffect(() => {
     console.log('EditableHero received data:', data);
     setHeroData(data);
-    
+
     // Initialize form data with current values
     if (data) {
       const initialFormData = {
-        greeting: data.title || "Hi, my name is",
-        name: data.subtitle || "Nauman Noor.",
-        tagline: data.description || "I build things for the web.",
-        description: data.longDescription || "I'm a full stack developer specializing in building and exploring AI, ML, deep learning, data science, generative AI, and RAGs automation. Currently, I'm focused on building accessible, human-centered products and innovative AI solutions.",
-        ctaText: data.ctaText || "Get In Touch",
-        email: data.email || "naumanjaat@gmail.com",
+        greeting: data.title || 'Hi, my name is',
+        name: data.subtitle || 'Nauman Noor.',
+        tagline: data.description || 'I build things for the web.',
+        description:
+          data.longDescription ||
+          "I'm a full stack developer specializing in building and exploring AI, ML, deep learning, data science, generative AI, and RAGs automation. Currently, I'm focused on building accessible, human-centered products and innovative AI solutions.",
+        ctaText: data.ctaText || 'Get In Touch',
+        email: data.email || 'naumanjaat@gmail.com',
         isActive: data.isActive !== false,
-        order: data.order || 0
+        order: data.order || 0,
       };
       console.log('Initializing form data with:', initialFormData);
       setFormData(initialFormData);
@@ -355,35 +356,37 @@ const EditableHero = ({ data, onUpdate }) => {
   }, [prefersReducedMotion]);
 
   // Use dynamic data or fallback to defaults
-  const greeting = heroData?.title || "Hi, my name is";
-  const name = heroData?.subtitle || "Nauman Noor.";
-  const tagline = heroData?.description || "I build things for the web.";
-  const description = heroData?.longDescription || "I'm a full stack developer specializing in building and exploring AI, ML, deep learning, data science, generative AI, and RAGs automation. Currently, I'm focused on building accessible, human-centered products and innovative AI solutions.";
-  const ctaText = heroData?.ctaText || "Get In Touch";
-  const email = heroData?.email || "naumanjaat@gmail.com";
+  const greeting = heroData?.title || 'Hi, my name is';
+  const name = heroData?.subtitle || 'Nauman Noor.';
+  const tagline = heroData?.description || 'I build things for the web.';
+  const description =
+    heroData?.longDescription ||
+    "I'm a full stack developer specializing in building and exploring AI, ML, deep learning, data science, generative AI, and RAGs automation. Currently, I'm focused on building accessible, human-centered products and innovative AI solutions.";
+  const ctaText = heroData?.ctaText || 'Get In Touch';
+  const email = heroData?.email || 'naumanjaat@gmail.com';
 
   console.log('Current hero data state:', heroData);
   console.log('Mapped values:', { greeting, name, tagline, description, ctaText, email });
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     console.log('Submitting form data:', formData);
-    
+
     try {
       const response = await fetch('/api/hero', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
         body: JSON.stringify(formData),
       });
@@ -413,7 +416,7 @@ const EditableHero = ({ data, onUpdate }) => {
 
   const handleEdit = () => {
     console.log('Current hero data for form:', heroData);
-    
+
     // Use current displayed values as fallback if heroData is empty
     const currentValues = {
       greeting: heroData?.title || greeting,
@@ -423,9 +426,9 @@ const EditableHero = ({ data, onUpdate }) => {
       ctaText: heroData?.ctaText || ctaText,
       email: heroData?.email || email,
       isActive: heroData?.isActive !== false,
-      order: heroData?.order || 0
+      order: heroData?.order || 0,
     };
-    
+
     console.log('Setting form data to:', currentValues);
     setFormData(currentValues);
     setIsModalOpen(true);
@@ -434,17 +437,16 @@ const EditableHero = ({ data, onUpdate }) => {
   const one = <h1>{greeting}</h1>;
   const two = <h2 className="big-heading">{name}</h2>;
   const three = <h3 className="big-heading">{formatTextWithBackticks(tagline)}</h3>;
-  const four = (
-    <p>{formatTextWithBackticks(description)}</p>
-  );
+  const four = <p>{formatTextWithBackticks(description)}</p>;
   const five = (
     <a
       className="email-link"
       href="#contact"
-      onClick={(e) => {
+      onClick={e => {
         e.preventDefault();
         scrollToContact();
-      }}>
+      }}
+    >
       {ctaText}
     </a>
   );
@@ -462,8 +464,6 @@ const EditableHero = ({ data, onUpdate }) => {
           </div>
         )}
 
-
-
         {prefersReducedMotion ? (
           <>
             {items.map((item, i) => (
@@ -474,16 +474,16 @@ const EditableHero = ({ data, onUpdate }) => {
           <TransitionGroup component={null}>
             {isMounted &&
               items.map((item, i) => (
-                <CSSTransition key={i} classNames="fadeup" timeout={loaderDelay}>
+                <FadeIn key={i} classNames="fadeup" timeout={loaderDelay}>
                   <div style={{ transitionDelay: `${i + 1}00ms` }}>{item}</div>
-                </CSSTransition>
+                </FadeIn>
               ))}
           </TransitionGroup>
         )}
       </StyledHeroSection>
 
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>Edit Hero Section</h3>
             <form onSubmit={handleSubmit}>
@@ -598,8 +598,14 @@ const EditableHero = ({ data, onUpdate }) => {
                 <div className="preview-content">
                   <h1>{formData.greeting || 'Hi, my name is'}</h1>
                   <h2 className="big-heading">{formData.name || 'Your Name'}</h2>
-                  <h3 className="big-heading">{formatTextWithBackticks(formData.tagline || 'Your tagline')}</h3>
-                  <p>{formatTextWithBackticks(formData.description || 'Your description will appear here...')}</p>
+                  <h3 className="big-heading">
+                    {formatTextWithBackticks(formData.tagline || 'Your tagline')}
+                  </h3>
+                  <p>
+                    {formatTextWithBackticks(
+                      formData.description || 'Your description will appear here...'
+                    )}
+                  </p>
                   <button className="cta-button">{formData.ctaText || 'Get In Touch'}</button>
                   <p className="preview-note">This button will scroll to the contact section</p>
                 </div>
@@ -623,7 +629,7 @@ const EditableHero = ({ data, onUpdate }) => {
 
 EditableHero.propTypes = {
   data: PropTypes.object,
-  onUpdate: PropTypes.func
+  onUpdate: PropTypes.func,
 };
 
 export default EditableHero;

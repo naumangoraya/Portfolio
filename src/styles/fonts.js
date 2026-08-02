@@ -9,7 +9,10 @@ const calibreNormalWeights = {
 const calibreItalicWeights = {
   400: ['/fonts/Calibre/Calibre-RegularItalic.woff', '/fonts/Calibre/Calibre-RegularItalic.woff2'],
   500: ['/fonts/Calibre/Calibre-MediumItalic.woff', '/fonts/Calibre/Calibre-MediumItalic.woff2'],
-  600: ['/fonts/Calibre/Calibre-SemiboldItalic.woff', '/fonts/Calibre/Calibre-SemiboldItalic.woff2'],
+  600: [
+    '/fonts/Calibre/Calibre-SemiboldItalic.woff',
+    '/fonts/Calibre/Calibre-SemiboldItalic.woff2',
+  ],
 };
 
 const sfMonoNormalWeights = {

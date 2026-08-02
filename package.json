@@ -1,11 +1,12 @@
 {
-  "name": "v4",
-  "description": "Personal Website V4 - Dynamic Portfolio with Admin Panel",
-  "version": "1.0.0",
+  "name": "portfolio",
+  "description": "Dynamic portfolio site with a database-driven admin panel",
+  "version": "2.0.0",
+  "private": true,
   "author": "Nauman Noor <nauman.noor@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/naumannoor/v4"
+    "url": "https://github.com/naumangoraya/Portfolio"
   },
   "keywords": [
     "nextjs",
@@ -14,35 +15,48 @@
     "mongodb"
   ],
   "license": "MIT",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "lint": "next lint",
-    "seed:admin": "node scripts/create-admin.mjs"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "seed:admin": "node --env-file=.env.local scripts/create-admin.mjs",
+    "seed:sections": "node --env-file=.env.local scripts/seed-sections.mjs"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.7.0",
-    "dotenv": "^17.2.1",
     "jsonwebtoken": "^9.0.2",
-    "lodash": "^4.17.21",
-    "mongodb": "^6.3.0",
-    "mongoose": "^8.0.3",
-    "next": "^14.0.0",
+    "mongoose": "^9.9.1",
+    "nanoid": "^6.0.0",
+    "next": "^16.2.12",
     "prop-types": "^15.8.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-hot-toast": "^2.4.1",
+    "react-markdown": "^10.1.0",
     "react-transition-group": "^4.4.5",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "resend": "^6.0.2",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^20.10.4",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.0.0"
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.2.12",
+    "globals": "^15.15.0",
+    "prettier": "^3.9.6"
   }
 }

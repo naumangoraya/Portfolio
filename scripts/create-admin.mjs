@@ -1,16 +1,15 @@
 // Creates (or updates) the admin user in MongoDB using the credentials in
 // .env.local (ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME).
 //
-// Run with:  node scripts/create-admin.mjs
+// Run with:  npm run seed:admin
+//
+// Env is loaded by Node's built-in --env-file (see the seed:admin script), so
+// this no longer needs the dotenv dependency.
 //
 // The User model hashes the password via a pre-save hook, so we must use
 // .save() (not updateOne) for the hashing to run.
 
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-
-// Next.js uses .env.local; load it explicitly (dotenv defaults to .env).
-dotenv.config({ path: '.env.local' });
 
 const { MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = process.env;
 
@@ -39,15 +38,13 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
-userSchema.pre('save', function (next) {
+userSchema.pre('save', async function () {
   this.isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(this.role);
-  next();
 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
@@ -81,7 +78,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error('❌ Failed to create admin user:', err.message);
   process.exit(1);
 });

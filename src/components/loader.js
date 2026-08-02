@@ -41,12 +41,12 @@ const Loader = ({ finishLoading }) => {
 
   useEffect(() => {
     const timeout = setTimeout(() => setIsMounted(true), 10);
-    
+
     // Simple animation without external dependencies
     const animationTimeout = setTimeout(() => {
       finishLoading();
     }, 2000); // Show loader for 2 seconds
-    
+
     return () => {
       clearTimeout(timeout);
       clearTimeout(animationTimeout);

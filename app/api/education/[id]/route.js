@@ -1,85 +1,16 @@
-import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
-import dbConnect from '../../../../lib/mongodb';
-import Education from '../../../../lib/models/Education';
-import { verifyAdmin } from '../../../../lib/auth';
+import { defineResource } from '../../../../lib/api/defineResource.js';
+import Education from '../../../../lib/models/Education.js';
+import { EducationSchema, EDUCATION_FIELDS } from '../../../../lib/schemas/content.js';
 
-export async function PUT(request, { params }) {
-  try {
-    // Verify admin access
-    const authResult = await verifyAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-    const { id } = params;
-    await dbConnect();
-    
-    const updateData = await request.json();
-    const updatedEducation = await Education.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-    
-    if (!updatedEducation) {
-      return NextResponse.json(
-        { error: 'Education entry not found' },
-        { status: 404 }
-      );
-    }
-    
-    revalidatePath('/');
+const { item } = defineResource({
+  model: Education,
+  schema: EducationSchema,
+  allowedFields: EDUCATION_FIELDS,
+  singleton: false,
+  legacyKey: 'education',
+});
 
-    return NextResponse.json({
-      message: 'Education entry updated successfully',
-      education: updatedEducation
-    });
-  } catch (error) {
-    console.error('Error updating education entry:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(request, { params }) {
-  try {
-    // Verify admin access
-    const authResult = await verifyAdmin(request);
-    if (!authResult.success) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = params;
-    await dbConnect();
-    
-    const deletedEducation = await Education.findByIdAndDelete(id);
-    
-    if (!deletedEducation) {
-      return NextResponse.json(
-        { error: 'Education entry not found' },
-        { status: 404 }
-      );
-    }
-    
-    revalidatePath('/');
-
-    return NextResponse.json({
-      message: 'Education entry deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting education entry:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
+export const { GET, PUT, DELETE } = item;

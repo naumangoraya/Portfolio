@@ -50,7 +50,7 @@ const StyledEducationSection = styled.section`
 
       &.seed-button {
         background: #f59e0b;
-        
+
         &:hover {
           background: #f39c12;
         }
@@ -90,7 +90,9 @@ const StyledEducationSection = styled.section`
 
     &:hover {
       transform: translateY(-5px);
-      box-shadow: 0 20px 40px -20px rgba(2, 12, 27, 0.8), 0 10px 30px -15px rgba(0, 0, 0, 0.3);
+      box-shadow:
+        0 20px 40px -20px rgba(2, 12, 27, 0.8),
+        0 10px 30px -15px rgba(0, 0, 0, 0.3);
       background-color: var(--navy);
       border: 1px solid var(--green-tint);
     }
@@ -121,7 +123,7 @@ const StyledEducationSection = styled.section`
 
         &.delete {
           background: #ff6b6b;
-          
+
           &:hover {
             background: #ff5252;
           }
@@ -129,7 +131,7 @@ const StyledEducationSection = styled.section`
 
         &.edit {
           background: #f59e0b;
-          
+
           &:hover {
             background: #f39c12;
           }
@@ -313,7 +315,8 @@ const StyledModal = styled.div`
         font-weight: 600;
       }
 
-      input, textarea {
+      input,
+      textarea {
         width: 100%;
         padding: 12px;
         background: var(--light-navy);
@@ -406,7 +409,7 @@ const StyledModal = styled.div`
         &.save {
           background: var(--green);
           color: var(--navy);
-          
+
           &:hover {
             background: var(--light-green);
             transform: translateY(-1px);
@@ -417,7 +420,7 @@ const StyledModal = styled.div`
         &.cancel {
           background: var(--lightest-navy);
           color: var(--lightest-slate);
-          
+
           &:hover {
             background: var(--light-navy);
             transform: translateY(-1px);
@@ -438,7 +441,7 @@ const Education = ({ data = [] }) => {
   const revealItems = useRef([]);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { isAdmin, editMode } = useAuth();
-  
+
   const [education, setEducation] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -457,7 +460,7 @@ const Education = ({ data = [] }) => {
     relevantCoursework: [],
     achievements: [],
     isActive: true,
-    order: 1
+    order: 1,
   });
 
   useEffect(() => {
@@ -502,73 +505,48 @@ const Education = ({ data = [] }) => {
     }
   };
 
-  const seedEducationData = async () => {
-    try {
-      const response = await fetch('/api/education/seed', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        },
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        toast.success('Education seeded successfully!');
-        await fetchEducation();
-      } else {
-        const errorData = await response.json();
-        toast.error(`Failed to seed education: ${errorData.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error seeding education:', error);
-      toast.error('An error occurred while seeding education');
-    }
-  };
-
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleArrayInputChange = (field, index, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
     }));
   };
 
-  const addArrayItem = (field) => {
+  const addArrayItem = field => {
     setFormData(prev => ({
       ...prev,
-      [field]: [...prev[field], '']
+      [field]: [...prev[field], ''],
     }));
   };
 
   const removeArrayItem = (field, index) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
+      [field]: prev[field].filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     try {
-      const url = isEditing 
-        ? `/api/education/${currentEducation._id}`
-        : '/api/education';
-      
+      const url = isEditing ? `/api/education/${currentEducation._id}` : '/api/education';
+
       const method = isEditing ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
         body: JSON.stringify(formData),
       });
@@ -581,7 +559,9 @@ const Education = ({ data = [] }) => {
         resetForm();
       } else {
         const errorData = await response.json();
-        toast.error(`Failed to ${isEditing ? 'update' : 'create'} education: ${errorData.error || 'Unknown error'}`);
+        toast.error(
+          `Failed to ${isEditing ? 'update' : 'create'} education: ${errorData.error || 'Unknown error'}`
+        );
       }
     } catch (error) {
       console.error('Error saving education:', error);
@@ -589,7 +569,7 @@ const Education = ({ data = [] }) => {
     }
   };
 
-  const handleEdit = (edu) => {
+  const handleEdit = edu => {
     setCurrentEducation(edu);
     setFormData({
       degree: edu.degree || '',
@@ -603,13 +583,13 @@ const Education = ({ data = [] }) => {
       relevantCoursework: edu.relevantCoursework || [],
       achievements: edu.achievements || [],
       isActive: edu.isActive !== false,
-      order: edu.order || 1
+      order: edu.order || 1,
     });
     setIsEditing(true);
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (!confirm('Are you sure you want to delete this education entry?')) {
       return;
     }
@@ -618,7 +598,7 @@ const Education = ({ data = [] }) => {
       const response = await fetch(`/api/education/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
         },
       });
 
@@ -649,7 +629,7 @@ const Education = ({ data = [] }) => {
       relevantCoursework: [],
       achievements: [],
       isActive: true,
-      order: 1
+      order: 1,
     });
     setIsEditing(false);
     setIsModalOpen(true);
@@ -668,7 +648,7 @@ const Education = ({ data = [] }) => {
       relevantCoursework: [],
       achievements: [],
       isActive: true,
-      order: 1
+      order: 1,
     });
     setCurrentEducation(null);
     setIsEditing(false);
@@ -698,44 +678,36 @@ const Education = ({ data = [] }) => {
     <>
       <StyledEducationSection id="education">
         <div className="inner">
-          <h2 className="numbered-heading" ref={revealTitle}>Education</h2>
+          <h2 className="numbered-heading" ref={revealTitle}>
+            Education
+          </h2>
 
           {isAdmin && editMode && (
             <div className="admin-controls">
               <button className="add-button" onClick={handleAdd}>
                 Add Education Entry
               </button>
-              <button 
-                className="seed-button" 
-                onClick={seedEducationData}
-              >
-                Seed with Dummy Data
-              </button>
             </div>
           )}
 
           {education.length === 0 ? (
-            <div className="empty">No education entries found. Add some education entries to get started!</div>
+            <div className="empty">
+              No education entries found. Add some education entries to get started!
+            </div>
           ) : (
             <div className="education-grid" ref={revealGrid}>
               {education.map((edu, i) => (
-                <div 
-                  key={edu._id} 
+                <div
+                  key={edu._id}
                   className="education-item"
                   ref={el => (revealItems.current[i] = el)}
                 >
                   {isAdmin && editMode && (
                     <div className="admin-controls">
-                      <button 
-                        className="edit"
-                        onClick={() => handleEdit(edu)}
-                      >
+                      <button className="edit" onClick={() => handleEdit(edu)}>
                         Edit
                       </button>
-                      <button 
-                        className="delete"
-                        onClick={() => handleDelete(edu._id)}
-                      >
+                      <button className="delete" onClick={() => handleDelete(edu._id)}>
                         Delete
                       </button>
                     </div>
@@ -752,14 +724,10 @@ const Education = ({ data = [] }) => {
 
                   <div className="education-content">
                     {edu.description && (
-                      <div className="description">
-                        {formatTextWithBackticks(edu.description)}
-                      </div>
+                      <div className="description">{formatTextWithBackticks(edu.description)}</div>
                     )}
 
-                    {edu.gpa && (
-                      <div className="gpa">GPA: {edu.gpa}</div>
-                    )}
+                    {edu.gpa && <div className="gpa">GPA: {edu.gpa}</div>}
 
                     {edu.relevantCoursework && edu.relevantCoursework.length > 0 && (
                       <div className="coursework">
@@ -792,7 +760,7 @@ const Education = ({ data = [] }) => {
 
       {/* Modal for adding/editing education */}
       {isModalOpen && (
-        <StyledModal onClick={(e) => e.target === e.currentTarget && setIsModalOpen(false)}>
+        <StyledModal onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}>
           <div className="modal-content">
             <h3>{isEditing ? 'Edit Education Entry' : 'Add New Education Entry'}</h3>
             <form onSubmit={handleSubmit}>
@@ -846,10 +814,11 @@ const Education = ({ data = [] }) => {
                   required
                 />
                 <small style={{ color: 'var(--light-slate)', fontSize: '12px' }}>
-                  Or enter manually: <input
+                  Or enter manually:{' '}
+                  <input
                     type="text"
                     value={formData.startDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    onChange={e => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                     placeholder="e.g., 2018 or 2018-01"
                     style={{ width: '100%', marginTop: '5px' }}
                   />
@@ -867,10 +836,11 @@ const Education = ({ data = [] }) => {
                   placeholder="e.g., 2022-12"
                 />
                 <small style={{ color: 'var(--light-slate)', fontSize: '12px' }}>
-                  Or enter manually: <input
+                  Or enter manually:{' '}
+                  <input
                     type="text"
                     value={formData.endDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                    onChange={e => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                     placeholder="e.g., 2022, Present, or 2022-12"
                     style={{ width: '100%', marginTop: '5px' }}
                   />
@@ -884,7 +854,7 @@ const Education = ({ data = [] }) => {
                     id="current"
                     name="current"
                     checked={formData.current || false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, current: e.target.checked }))}
+                    onChange={e => setFormData(prev => ({ ...prev, current: e.target.checked }))}
                     style={{ marginRight: '8px' }}
                   />
                   Currently studying here
@@ -924,15 +894,24 @@ const Education = ({ data = [] }) => {
                         type="text"
                         id={`coursework-${index}`}
                         value={course}
-                        onChange={(e) => handleArrayInputChange('relevantCoursework', index, e.target.value)}
+                        onChange={e =>
+                          handleArrayInputChange('relevantCoursework', index, e.target.value)
+                        }
                         placeholder="Course name"
                       />
-                      <button type="button" onClick={() => removeArrayItem('relevantCoursework', index)}>
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('relevantCoursework', index)}
+                      >
                         Remove
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="add-array-item" onClick={() => addArrayItem('relevantCoursework')}>
+                  <button
+                    type="button"
+                    className="add-array-item"
+                    onClick={() => addArrayItem('relevantCoursework')}
+                  >
                     Add Course
                   </button>
                 </div>
@@ -947,7 +926,9 @@ const Education = ({ data = [] }) => {
                         type="text"
                         id={`achievements-${index}`}
                         value={achievement}
-                        onChange={(e) => handleArrayInputChange('achievements', index, e.target.value)}
+                        onChange={e =>
+                          handleArrayInputChange('achievements', index, e.target.value)
+                        }
                         placeholder="Achievement description"
                       />
                       <button type="button" onClick={() => removeArrayItem('achievements', index)}>
@@ -955,7 +936,11 @@ const Education = ({ data = [] }) => {
                       </button>
                     </div>
                   ))}
-                  <button type="button" className="add-array-item" onClick={() => addArrayItem('achievements')}>
+                  <button
+                    type="button"
+                    className="add-array-item"
+                    onClick={() => addArrayItem('achievements')}
+                  >
                     Add Achievement
                   </button>
                 </div>
@@ -993,4 +978,4 @@ Education.propTypes = {
   data: PropTypes.array,
 };
 
-export default Education; 
+export default Education;
