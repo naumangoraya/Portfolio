@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -46,6 +48,14 @@ const StyledButton = styled.button`
     }
   }
 
+  /* Rendered as a next/link via the polymorphic \`as\` prop, so it needs the
+     anchor resets the button never did. */
+  &.panel {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
   /* $active is transient: styled-components v6 no longer filters unknown
      props, so a plain \`active\` would also leak onto the DOM node. It was
      previously read here but never passed at all, so the "on" state of the
@@ -63,13 +73,23 @@ const StyledButton = styled.button`
 
 const AdminControls = () => {
   const { isAdmin, isLoading, editMode, logout, toggleEditMode } = useAuth();
+  const pathname = usePathname();
 
   if (isLoading || !isAdmin) {
     return null;
   }
 
+  // The admin panel has its own topbar with these actions; this fixed bar would
+  // float over its content and duplicate them.
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <StyledAdminControls>
+      <StyledButton as={Link} href="/admin" className="panel">
+        Admin panel
+      </StyledButton>
       <StyledButton
         className="edit-mode"
         $active={editMode}

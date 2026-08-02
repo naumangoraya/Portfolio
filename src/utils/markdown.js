@@ -49,6 +49,16 @@ const codeTextOf = node => {
   };
 };
 
+/**
+ * react-markdown passes the hast `node` to every override. It must not reach
+ * the DOM element or React renders `node="[object Object]"` as an attribute.
+ */
+const omitNode = props => {
+  const rest = { ...props };
+  delete rest.node;
+  return rest;
+};
+
 export const MD_COMPONENTS = {
   /**
    * Block code. Rendered from the hast node rather than from `children`, which
@@ -90,21 +100,11 @@ export const MD_COMPONENTS = {
   ),
 };
 
-// `node` is react-markdown's hast node. It is destructured out of every
-// override above so it never leaks onto the DOM element as an attribute.
 MD_COMPONENTS.pre.propTypes = { node: PropTypes.object };
-MD_COMPONENTS.code.propTypes = {
-  node: PropTypes.object,
-  children: PropTypes.node,
-  className: PropTypes.string,
-};
-MD_COMPONENTS.a.propTypes = {
-  node: PropTypes.object,
-  children: PropTypes.node,
-  href: PropTypes.string,
-};
-MD_COMPONENTS.img.propTypes = { node: PropTypes.object, alt: PropTypes.string };
-MD_COMPONENTS.table.propTypes = { node: PropTypes.object, children: PropTypes.node };
+MD_COMPONENTS.code.propTypes = { children: PropTypes.node, className: PropTypes.string };
+MD_COMPONENTS.a.propTypes = { children: PropTypes.node, href: PropTypes.string };
+MD_COMPONENTS.img.propTypes = { alt: PropTypes.string };
+MD_COMPONENTS.table.propTypes = { children: PropTypes.node };
 
 const PROSE_CSS = `
 .md-prose { color: var(--slate); font-size: var(--fz-lg); line-height: 1.7; }

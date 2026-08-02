@@ -26,7 +26,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "seed:admin": "node --env-file=.env.local scripts/create-admin.mjs"
+    "seed:admin": "node --env-file=.env.local scripts/create-admin.mjs",
+    "seed:sections": "node --env-file=.env.local scripts/seed-sections.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

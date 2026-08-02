@@ -21,9 +21,17 @@ const CSS = `
 const CustomSection = ({ section }) => {
   const s = section || {};
   const heading = typeof s.title === 'string' ? s.title : s.heading || '';
-  const blocks = (Array.isArray(s.blocks) ? s.blocks : []).filter(
-    block => block && block.visible !== false
-  );
+
+  // Blocks live at `content.blocks` on the Section model. A bare `blocks`
+  // array is also accepted so the renderer can be used standalone (previews,
+  // tests) without wrapping it in a content envelope.
+  const raw = Array.isArray(s.content?.blocks)
+    ? s.content.blocks
+    : Array.isArray(s.blocks)
+      ? s.blocks
+      : [];
+
+  const blocks = raw.filter(block => block && block.visible !== false);
 
   if (!heading && blocks.length === 0) return null;
 
