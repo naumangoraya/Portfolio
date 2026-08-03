@@ -68,7 +68,10 @@ await mongoose.connect(MONGODB_URI);
 const result = await mongoose.connection.db
   .collection('users')
   .updateOne({ email: OLD_EMAIL }, { $set: { isActive: false } });
-console.log(`Deactivated ${OLD_EMAIL}:`, result.modifiedCount === 1 ? 'done' : 'no matching user found');
+console.log(
+  `Deactivated ${OLD_EMAIL}:`,
+  result.modifiedCount === 1 ? 'done' : 'no matching user found'
+);
 await mongoose.disconnect();
 ```
 
@@ -113,18 +116,18 @@ deployments to work identically). Copy the values straight from your local
 `.env.local` — they must be the **same** values, since it's the same database and the
 same Cloudinary/Resend accounts.
 
-| Key | Value | Notes |
-|---|---|---|
-| `MONGODB_URI` | *(from `.env.local`)* | same Atlas cluster as local |
-| `JWT_SECRET` | *(from `.env.local`)* | same value as local — different secrets would invalidate sessions inconsistently |
-| `CLOUDINARY_CLOUD_NAME` | `drpwc8url` | |
-| `CLOUDINARY_API_KEY` | `571614285834359` | |
-| `CLOUDINARY_API_SECRET` | *(from `.env.local`)* | |
-| `RESEND_API_KEY` | *(from step 2)* | |
-| `NOTIFICATION_EMAIL` | `naumanjaat@gmail.com` | where contact-form submissions get emailed |
-| `CONTACT_FROM_EMAIL` | `contact@naumannoor.tech` | optional, only after domain is verified in Resend |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | `naumanjaat@gmail.com` | shown in the static footer/sidebar |
-| `NEXT_PUBLIC_CONTACT_PHONE` | `+923106623823` | shown in the static footer/sidebar |
+| Key                         | Value                     | Notes                                                                            |
+| --------------------------- | ------------------------- | -------------------------------------------------------------------------------- |
+| `MONGODB_URI`               | _(from `.env.local`)_     | same Atlas cluster as local                                                      |
+| `JWT_SECRET`                | _(from `.env.local`)_     | same value as local — different secrets would invalidate sessions inconsistently |
+| `CLOUDINARY_CLOUD_NAME`     | `drpwc8url`               |                                                                                  |
+| `CLOUDINARY_API_KEY`        | `571614285834359`         |                                                                                  |
+| `CLOUDINARY_API_SECRET`     | _(from `.env.local`)_     |                                                                                  |
+| `RESEND_API_KEY`            | _(from step 2)_           |                                                                                  |
+| `NOTIFICATION_EMAIL`        | `naumanjaat@gmail.com`    | where contact-form submissions get emailed                                       |
+| `CONTACT_FROM_EMAIL`        | `contact@naumannoor.tech` | optional, only after domain is verified in Resend                                |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | `naumanjaat@gmail.com`    | shown in the static footer/sidebar                                               |
+| `NEXT_PUBLIC_CONTACT_PHONE` | `+923106623823`           | shown in the static footer/sidebar                                               |
 
 Do **not** add `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` — not read by the app.
 

@@ -56,7 +56,7 @@ await upsert(
       "I'm a software engineer with about a year of industry experience building full-stack web applications, `AI-powered systems`, and low-code/no-code automations end to end.",
       "I'm comfortable across the stack — `React` and the MERN ecosystem on the frontend and backend, `Python` with `FastAPI`, `Flask`, and `Django` on the server, and `SQL` and data pipelines underneath.",
       "At `Kcube AI`, I've shipped a bilingual voice assistant that handles inbound real-estate calls, re-architected an AI recruitment platform from Django + Azure AI Search into a much faster React + FastAPI system, and automated internal operations on `n8n`, `Zapier`, and the `Microsoft Power Platform`.",
-      "On the AI/LLM side, I work with retrieval pipelines, document extraction, and `LangChain`/`LangGraph` chatbots. My BS in Computer Science from `FAST-NUCES` included a final-year project applying ETL pipelines and machine learning to e-commerce campaign analytics.",
+      'On the AI/LLM side, I work with retrieval pipelines, document extraction, and `LangChain`/`LangGraph` chatbots. My BS in Computer Science from `FAST-NUCES` included a final-year project applying ETL pipelines and machine learning to e-commerce campaign analytics.',
       'Here are a few technologies I’ve been working with recently:',
     ].join('\n\n'),
     skills: [
@@ -84,7 +84,17 @@ await upsert(
     range: 'August 2025 - Present',
     description:
       'Build and deliver full-stack web applications, AI-powered systems, and low-code/no-code automations end to end — working solo and in teams, owning features (sometimes entire products) from problem to production. Shipped a bilingual (English/Spanish) voice assistant for `Fausto Commercial` that answers real-estate inquiries and captures leads 24/7, re-architected an AI recruitment search from Django + Azure AI Search into a custom `React` + `FastAPI` pipeline with SQL-backed retrieval and windowed LLM processing, and built internal automation suites on `n8n`, `Zapier`, and the `Microsoft Power Platform` for clients including a financial-advisory firm and a photography agency.',
-    tech: ['React', 'FastAPI', 'Python', 'n8n', 'LangChain', 'LangGraph', 'Microsoft Power Platform', 'Vapi', 'Twilio'],
+    tech: [
+      'React',
+      'FastAPI',
+      'Python',
+      'n8n',
+      'LangChain',
+      'LangGraph',
+      'Microsoft Power Platform',
+      'Vapi',
+      'Twilio',
+    ],
     employmentType: 'Full-time',
     current: true,
     isActive: true,
