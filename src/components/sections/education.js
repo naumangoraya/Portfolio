@@ -817,7 +817,7 @@ const Education = ({ data = [] }) => {
                   placeholder="e.g., 2021 - 2025 or Oct 2025"
                 />
                 <small style={{ color: 'var(--light-slate)', fontSize: '12px' }}>
-                  This is what's shown on the site. Start/End Date below are optional extras.
+                  This is what&apos;s shown on the site. Start/End Date below are optional extras.
                 </small>
               </div>
 
