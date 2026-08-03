@@ -372,18 +372,18 @@ const EditableJobs = ({ data = [] }) => {
     title: '',
     company: '',
     location: '',
-    dates: '',
+    range: '',
     startDate: '',
     endDate: '',
-    isCurrent: false,
+    current: false,
     description: '',
     achievements: '',
     responsibilities: '',
-    tech: '',
-    companyWebsite: '',
+    technologies: '',
+    url: '',
     order: 0,
     isActive: true,
-    type: 'Full-time',
+    employmentType: 'Full-time',
   });
 
   const tabs = useRef([]);
@@ -397,31 +397,31 @@ const EditableJobs = ({ data = [] }) => {
       _id: 'dummy1',
       company: 'TechCorp Solutions',
       title: 'Senior Full Stack Developer',
-      dates: 'Jan 2023 - Present',
+      range: 'Jan 2023 - Present',
       location: 'San Francisco, CA',
       description:
         'Leading development of enterprise web applications using React, Node.js, and MongoDB. Mentoring junior developers and implementing best practices for code quality and performance.',
-      tech: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'AWS'],
+      technologies: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'AWS'],
     },
     {
       _id: 'dummy2',
       company: 'InnovateLabs',
       title: 'Frontend Developer',
-      dates: 'Mar 2021 - Dec 2022',
+      range: 'Mar 2021 - Dec 2022',
       location: 'New York, NY',
       description:
         'Built responsive user interfaces and implemented modern frontend architectures. Collaborated with design and backend teams to deliver seamless user experiences.',
-      tech: ['React', 'Vue.js', 'Sass', 'Webpack', 'Jest'],
+      technologies: ['React', 'Vue.js', 'Sass', 'Webpack', 'Jest'],
     },
     {
       _id: 'dummy3',
       company: 'StartupHub',
       title: 'Software Engineer',
-      dates: 'Jun 2020 - Feb 2021',
+      range: 'Jun 2020 - Feb 2021',
       location: 'Austin, TX',
       description:
         'Developed features for a SaaS platform, focusing on user authentication, payment processing, and real-time notifications.',
-      tech: ['Python', 'Django', 'PostgreSQL', 'Redis', 'Docker'],
+      technologies: ['Python', 'Django', 'PostgreSQL', 'Redis', 'Docker'],
     },
   ];
 
@@ -499,7 +499,7 @@ const EditableJobs = ({ data = [] }) => {
 
     const jobPayload = {
       ...formData,
-      tech: formData.tech
+      technologies: formData.technologies
         .split(',')
         .map(t => t.trim())
         .filter(t => t),
@@ -527,7 +527,7 @@ const EditableJobs = ({ data = [] }) => {
 
         if (response.ok) {
           const updatedJob = await response.json();
-          setJobData(prev => prev.map(j => (j._id === editingJob._id ? updatedJob.job : j)));
+          setJobData(prev => prev.map(j => (j._id === editingJob._id ? updatedJob.jobs : j)));
           toast.success('Job updated successfully!');
         } else {
           toast.error('Failed to update job');
@@ -545,7 +545,7 @@ const EditableJobs = ({ data = [] }) => {
 
         if (response.ok) {
           const newJob = await response.json();
-          setJobData(prev => [...prev, newJob.job]);
+          setJobData(prev => [...prev, newJob.jobs]);
           toast.success('Job created successfully!');
         } else {
           toast.error('Failed to create job');
@@ -567,18 +567,18 @@ const EditableJobs = ({ data = [] }) => {
       title: job.title || '',
       company: job.company || '',
       location: job.location || '',
-      dates: job.dates || '',
+      range: job.range || '',
       startDate: job.startDate || '',
       endDate: job.endDate || '',
-      isCurrent: job.isCurrent || false,
+      current: job.current || false,
       description: job.description || '',
       achievements: Array.isArray(job.achievements) ? job.achievements.join(', ') : '',
       responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities.join(', ') : '',
-      tech: Array.isArray(job.tech) ? job.tech.join(', ') : '',
-      companyWebsite: job.companyWebsite || '',
+      technologies: Array.isArray(job.technologies) ? job.technologies.join(', ') : '',
+      url: job.url || '',
       order: job.order || 0,
       isActive: job.isActive !== false,
-      type: job.type || 'Full-time',
+      employmentType: job.employmentType || 'Full-time',
     });
     setIsModalOpen(true);
   };
@@ -623,18 +623,18 @@ const EditableJobs = ({ data = [] }) => {
       title: '',
       company: '',
       location: '',
-      dates: '',
+      range: '',
       startDate: '',
       endDate: '',
-      isCurrent: false,
+      current: false,
       description: '',
       achievements: '',
       responsibilities: '',
-      tech: '',
-      companyWebsite: '',
+      technologies: '',
+      url: '',
       order: 0,
       isActive: true,
-      type: 'Full-time',
+      employmentType: 'Full-time',
     });
   };
 
@@ -676,7 +676,7 @@ const EditableJobs = ({ data = [] }) => {
 
           <StyledTabPanels>
             {jobsToDisplay.map((job, i) => {
-              const { title, company, location, dates, description, tech } = job;
+              const { title, company, location, range, description, technologies } = job;
 
               return (
                 <FadeIn key={job._id || i} in={activeTabId === i} timeout={250} classNames="fade">
@@ -696,16 +696,16 @@ const EditableJobs = ({ data = [] }) => {
                       </span>
                     </h3>
 
-                    <p className="range">{dates}</p>
+                    <p className="range">{range}</p>
                     {location && <p className="location">📍 {location}</p>}
 
                     <div className="description">{formatTextWithBackticks(description)}</div>
 
-                    {tech && tech.length > 0 && (
+                    {technologies && technologies.length > 0 && (
                       <div className="tech-stack">
                         <strong>Technologies:</strong>
                         <div className="tech-tags">
-                          {tech.map((techItem, index) => (
+                          {technologies.map((techItem, index) => (
                             <span key={index} className="tech-tag">
                               {techItem}
                             </span>
@@ -771,12 +771,12 @@ const EditableJobs = ({ data = [] }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="dates">Dates (e.g., Jan 2023 - Present)</label>
+                <label htmlFor="range">Dates (e.g., Jan 2023 - Present)</label>
                 <input
                   type="text"
-                  id="dates"
-                  name="dates"
-                  value={formData.dates}
+                  id="range"
+                  name="range"
+                  value={formData.range}
                   onChange={handleInputChange}
                 />
               </div>
@@ -793,12 +793,12 @@ const EditableJobs = ({ data = [] }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="tech">Technologies (comma separated)</label>
+                <label htmlFor="technologies">Technologies (comma separated)</label>
                 <input
                   type="text"
-                  id="tech"
-                  name="tech"
-                  value={formData.tech}
+                  id="technologies"
+                  name="technologies"
+                  value={formData.technologies}
                   onChange={handleInputChange}
                   placeholder="React, Node.js, MongoDB"
                 />
@@ -829,26 +829,30 @@ const EditableJobs = ({ data = [] }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="companyWebsite">Company Website</label>
+                <label htmlFor="url">Company Website</label>
                 <input
                   type="url"
-                  id="companyWebsite"
-                  name="companyWebsite"
-                  value={formData.companyWebsite}
+                  id="url"
+                  name="url"
+                  value={formData.url}
                   onChange={handleInputChange}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="type">Job Type</label>
-                <input
-                  type="text"
-                  id="type"
-                  name="type"
-                  value={formData.type}
+                <label htmlFor="employmentType">Job Type</label>
+                <select
+                  id="employmentType"
+                  name="employmentType"
+                  value={formData.employmentType}
                   onChange={handleInputChange}
-                  placeholder="Full-time, Part-time, Contract, Internship"
-                />
+                >
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
               </div>
 
               <div className="form-group">
@@ -866,12 +870,12 @@ const EditableJobs = ({ data = [] }) => {
                 <div className="checkbox-group">
                   <input
                     type="checkbox"
-                    id="isCurrent"
-                    name="isCurrent"
-                    checked={formData.isCurrent}
+                    id="current"
+                    name="current"
+                    checked={formData.current}
                     onChange={handleInputChange}
                   />
-                  <label htmlFor="isCurrent">Current Position</label>
+                  <label htmlFor="current">Current Position</label>
                 </div>
               </div>
 

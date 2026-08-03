@@ -1051,9 +1051,11 @@ const Contact = ({ data }) => {
         apiData.social = socialData;
       }
 
-      // Add draft status
+      // Contact is a singleton — there is no second document to fall back to,
+      // so "draft" is a client-only label. Never flip isActive off here: doing
+      // so would blank the live section and surface the hardcoded placeholder
+      // phone number below instead of the real one.
       apiData.isDraft = !publish;
-      apiData.isActive = publish;
 
       console.log('Sending contact data:', apiData); // Debug log
 

@@ -291,7 +291,6 @@ const Services = ({ data = [] }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    shortDescription: '',
   });
 
   const { isAdmin, editMode } = useAuth();
@@ -309,7 +308,7 @@ const Services = ({ data = [] }) => {
     {
       _id: 'dummy1',
       title: '`Web Development`',
-      shortDescription:
+      description:
         'Full-stack `web development` with modern technologies. Building responsive, performant applications that deliver exceptional user experiences.',
       icon: '',
       isFeatured: false,
@@ -319,7 +318,7 @@ const Services = ({ data = [] }) => {
     {
       _id: 'dummy2',
       title: '`AI & Machine Learning`',
-      shortDescription:
+      description:
         'Designing and implementing intelligent systems using cutting-edge `AI/ML` technologies. From data preprocessing to model deployment.',
       icon: '',
       isFeatured: false,
@@ -329,7 +328,7 @@ const Services = ({ data = [] }) => {
     {
       _id: 'dummy3',
       title: '`UI/UX Design`',
-      shortDescription:
+      description:
         'Creating intuitive and beautiful user interfaces. Focused on `user-centered design` principles and modern design systems.',
       icon: '',
       isFeatured: false,
@@ -339,7 +338,7 @@ const Services = ({ data = [] }) => {
     {
       _id: 'dummy4',
       title: '`Business Automation`',
-      shortDescription:
+      description:
         'Streamlining business processes through intelligent `automation`. Integrating platforms and building efficient workflows.',
       icon: '',
       isFeatured: false,
@@ -349,7 +348,7 @@ const Services = ({ data = [] }) => {
     {
       _id: 'dummy5',
       title: '`LLM Integration`',
-      shortDescription:
+      description:
         'Building intelligent applications powered by `Large Language Models`. Creating RAG systems, AI agents, and smart APIs.',
       icon: '',
       isFeatured: false,
@@ -403,7 +402,7 @@ const Services = ({ data = [] }) => {
         if (response.ok) {
           const updatedService = await response.json();
           setServiceData(prev =>
-            prev.map(s => (s._id === editingService._id ? updatedService.service : s))
+            prev.map(s => (s._id === editingService._id ? updatedService.services : s))
           );
           toast.success('Service updated successfully!');
         } else {
@@ -422,7 +421,7 @@ const Services = ({ data = [] }) => {
 
         if (response.ok) {
           const newService = await response.json();
-          setServiceData(prev => [...prev, newService.service]);
+          setServiceData(prev => [...prev, newService.services]);
           toast.success('Service created successfully!');
         } else {
           toast.error('Failed to create service');
@@ -443,7 +442,6 @@ const Services = ({ data = [] }) => {
     setFormData({
       title: service.title || '',
       description: service.description || '',
-      shortDescription: service.shortDescription || '',
     });
     setIsModalOpen(true);
   };
@@ -483,7 +481,6 @@ const Services = ({ data = [] }) => {
     setFormData({
       title: '',
       description: '',
-      shortDescription: '',
     });
   };
 
@@ -514,9 +511,7 @@ const Services = ({ data = [] }) => {
                 )}
 
                 <div className="service-title">{formatText(service.title)}</div>
-                <div className="service-description">
-                  {formatText(service.shortDescription || service.description)}
-                </div>
+                <div className="service-description">{formatText(service.description)}</div>
               </div>
             ))
           ) : (
@@ -551,11 +546,11 @@ const Services = ({ data = [] }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="shortDescription">Description *</label>
+                <label htmlFor="description">Description *</label>
                 <textarea
-                  id="shortDescription"
-                  name="shortDescription"
-                  value={formData.shortDescription}
+                  id="description"
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
                   required
                   rows="4"

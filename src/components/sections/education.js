@@ -452,6 +452,7 @@ const Education = ({ data = [] }) => {
     degree: '',
     school: '',
     location: '',
+    year: '',
     startDate: '',
     endDate: 'Present',
     current: false,
@@ -575,6 +576,7 @@ const Education = ({ data = [] }) => {
       degree: edu.degree || '',
       school: edu.school || '',
       location: edu.location || '',
+      year: edu.year || '',
       startDate: edu.startDate || '',
       endDate: edu.endDate || 'Present',
       current: edu.current || false,
@@ -621,6 +623,7 @@ const Education = ({ data = [] }) => {
       degree: '',
       school: '',
       location: '',
+      year: '',
       startDate: '',
       endDate: 'Present',
       current: false,
@@ -640,6 +643,7 @@ const Education = ({ data = [] }) => {
       degree: '',
       school: '',
       location: '',
+      year: '',
       startDate: '',
       endDate: 'Present',
       current: false,
@@ -718,7 +722,7 @@ const Education = ({ data = [] }) => {
                     <div className="school">{edu.school}</div>
                     <div className="location">📍 {edu.location}</div>
                     <div className="dates">
-                      {edu.startDate} - {edu.current ? 'Present' : edu.endDate}
+                      {edu.year || `${edu.startDate} - ${edu.current ? 'Present' : edu.endDate}`}
                     </div>
                   </div>
 
@@ -803,7 +807,22 @@ const Education = ({ data = [] }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="startDate">Start Date *</label>
+                <label htmlFor="year">Year</label>
+                <input
+                  type="text"
+                  id="year"
+                  name="year"
+                  value={formData.year}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 2021 - 2025 or Oct 2025"
+                />
+                <small style={{ color: 'var(--light-slate)', fontSize: '12px' }}>
+                  This is what's shown on the site. Start/End Date below are optional extras.
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="startDate">Start Date</label>
                 <input
                   type="month"
                   id="startDate"
@@ -811,7 +830,6 @@ const Education = ({ data = [] }) => {
                   value={formData.startDate}
                   onChange={handleInputChange}
                   placeholder="e.g., 2018-01"
-                  required
                 />
                 <small style={{ color: 'var(--light-slate)', fontSize: '12px' }}>
                   Or enter manually:{' '}

@@ -362,6 +362,22 @@ const Featured = ({ data = [] }) => {
     setIsModalOpen(true);
   };
 
+  const handleAdd = () => {
+    setEditingProject(null);
+    setIsEditing(false);
+    setFormData({
+      title: '',
+      description: '',
+      github: '',
+      external: '',
+      tech: '',
+      image: { url: '', alt: '' },
+      featured: true,
+      showInProjects: false,
+    });
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async projectId => {
     if (!confirm('Are you sure you want to delete this featured project?')) {
       return;
@@ -621,7 +637,7 @@ const Featured = ({ data = [] }) => {
         {isAdmin && editMode && (
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={handleAdd}
               style={{
                 background: 'var(--green)',
                 color: 'var(--navy)',
